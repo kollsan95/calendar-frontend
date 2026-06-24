@@ -2,6 +2,8 @@
   'use strict';
   // URL подставляется GitHub Actions
   const GAS_URL = '{{GAS_URL}}';
+  const APP_VERSION = '{{VERSION}}';
+  const STORAGE_VERSION_KEY = 'app_version';
 
   // ===== Элементы =====
   const authBlock = document.getElementById('authBlock');
@@ -121,3 +123,21 @@
   autoLogin();
 
 })();
+
+// Регистрация Service Worker (если поддерживается)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(() => console.log('✅ Service Worker registered'))
+    .catch((err) => console.warn('Service Worker registration failed:', err));
+}
+
+// Проверяем, изменилась ли версия
+const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+if (storedVersion !== APP_VERSION) {
+  // Очищаем все локальные данные
+  localStorage.clear();
+  // Сохраняем новую версию
+  localStorage.setItem(STORAGE_VERSION_KEY, APP_VERSION);
+  // Перезагружаем страницу, чтобы применить изменения
+  window.location.reload();
+}

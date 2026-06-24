@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Календарь мастера</title>
   
+  <!-- Кеш-контроль -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
   <!-- Подключение шрифтов -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Подключение стилей -->
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Подключение стилей с версией -->
+  <link rel="stylesheet" href="styles.css?v={{VERSION}}" />
 </head>
 <body>
 
@@ -54,7 +59,7 @@
     <div id="calendarContainer"></div>
   </div>
 
-  <!-- Подключение основного скрипта -->
-  <script src="script.js"></script>
+  <!-- Подключение основного скрипта с версией -->
+  <script src="script.js?v={{VERSION}}"></script>
 </body>
 </html>
