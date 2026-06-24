@@ -16,6 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Show files before injection
+        run: |
+          ls -la
+          echo "=== Проверяем script.js ==="
+          cat script.js | head -20
+
       - name: Inject GAS_URL into script.js
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
@@ -24,11 +30,22 @@ jobs:
             echo "::error::Secret GAS_URL is not set"
             exit 1
           fi
-          # Заменяем маркер {{GAS_URL}} в script.js
+          
+          # Проверяем, есть ли маркер в файле
+          if ! grep -q "{{GAS_URL}}" script.js; then
+            echo "::error::Маркер {{GAS_URL}} не найден в script.js"
+            echo "Содержимое script.js:"
+            cat script.js
+            exit 1
+          fi
+          
+          # Заменяем маркер
           sed -i "s|{{GAS_URL}}|$GAS_URL|g" script.js
           echo "✅ GAS_URL injected into script.js"
-          # Проверка
-          grep -o "const GAS_URL = '[^']*'" script.js || echo "⚠️ Маркер не найден!"
+          
+          # Проверяем результат
+          echo "=== Проверяем script.js после замены ==="
+          grep -o "const GAS_URL = '[^']*'" script.js || echo "⚠️ Не удалось найти GAS_URL после замены!"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
