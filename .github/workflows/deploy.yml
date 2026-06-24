@@ -16,36 +16,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate version
-        id: version
-        run: |
-          # Используем timestamp + короткий SHA для уникальности
-          VERSION=$(date +%s)-${GITHUB_SHA::7}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Generated version: $VERSION"
-
       - name: Inject GAS_URL and VERSION into files
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ github.sha }}
         run: |
           if [ -z "$GAS_URL" ]; then
             echo "::error::Secret GAS_URL is not set"
             exit 1
           fi
           
-          # Инжектируем GAS_URL в script.js
-          sed -i "s|{{GAS_URL}}|$GAS_URL|g" script.js
-          echo "✅ GAS_URL injected"
+          # Инжектируем GAS_URL в config.js
+          sed -i "s|{{GAS_URL}}|$GAS_URL|g" js/config.js
+          echo "✅ GAS_URL injected into config.js"
           
-          # Инжектируем VERSION в index.html (для CSS и JS)
+          # Инжектируем VERSION в config.js
+          sed -i "s|{{VERSION}}|$VERSION|g" js/config.js
+          echo "✅ VERSION injected into config.js"
+          
+          # Инжектируем VERSION в index.html
           sed -i "s|{{VERSION}}|$VERSION|g" index.html
           echo "✅ VERSION injected into index.html"
-          
-          # Проверяем результат
-          echo "=== Проверяем index.html ==="
-          grep -o "styles.css?v=[^\"]*" index.html || echo "⚠️ styles.css version not found"
-          grep -o "script.js?v=[^\"]*" index.html || echo "⚠️ script.js version not found"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
