@@ -16,13 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show files before injection
+      - name: Show script.js before injection
         run: |
-          ls -la
-          echo "=== Проверяем script.js ==="
+          echo "=== Содержимое script.js до замены ==="
           cat script.js | head -20
 
-      - name: Inject GAS_URL into script.js
+      - name: Inject GAS_URL into script.js (via Node.js)
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
         run: |
@@ -31,21 +30,21 @@ jobs:
             exit 1
           fi
           
-          # Проверяем, есть ли маркер в файле
-          if ! grep -q "{{GAS_URL}}" script.js; then
-            echo "::error::Маркер {{GAS_URL}} не найден в script.js"
-            echo "Содержимое script.js:"
-            cat script.js
-            exit 1
-          fi
+          # Используем Node.js для надёжной замены
+          node -e "
+            const fs = require('fs');
+            let content = fs.readFileSync('script.js', 'utf8');
+            if (!content.includes('{{GAS_URL}}')) {
+              console.error('❌ Маркер {{GAS_URL}} не найден в script.js');
+              process.exit(1);
+            }
+            content = content.replace(/{{GAS_URL}}/g, process.env.GAS_URL);
+            fs.writeFileSync('script.js', content);
+            console.log('✅ GAS_URL injected into script.js');
+          "
           
-          # Заменяем маркер
-          sed -i "s|{{GAS_URL}}|$GAS_URL|g" script.js
-          echo "✅ GAS_URL injected into script.js"
-          
-          # Проверяем результат
-          echo "=== Проверяем script.js после замены ==="
-          grep -o "const GAS_URL = '[^']*'" script.js || echo "⚠️ Не удалось найти GAS_URL после замены!"
+          echo "=== Содержимое script.js после замены ==="
+          grep -o "const GAS_URL = '[^']*'" script.js || echo "⚠️ Не удалось найти GAS_URL"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
