@@ -175,7 +175,16 @@ const Modal = {
         // Обновляем кеш для текущего месяца
         const { year, month } = Calendar.getCurrentMonth();
         Cache.clear(year, month);
-        await loadAndRender(true);
+        
+        // Используем глобальную функцию loadAndRender
+        if (typeof window.loadAndRender === 'function') {
+          await window.loadAndRender(true);
+        } else {
+          console.error('loadAndRender не определена');
+          // Перезагружаем страницу как fallback
+          window.location.reload();
+        }
+        
         this.close();
       } else {
         alert(response.message || 'Ошибка сохранения');
@@ -202,7 +211,6 @@ const Modal = {
    */
   _generateUserOptions(isAdmin, currentUser) {
     // TODO: загружать список пользователей с сервера
-    // Пока используем фиксированный список
     const users = ['admin', 'user1', 'user2'];
     let options = '';
     
@@ -219,15 +227,17 @@ const Modal = {
 };
 
 // Добавляем стили анимации
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-`;
-document.head.appendChild(style);
+(function addStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+})();

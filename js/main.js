@@ -88,7 +88,12 @@
     
     Calendar.init(elements.calendarContainer, (day) => {
       const { year, month } = Calendar.getCurrentMonth();
-      alert(`Вы выбрали ${day}.${month}.${year}`);
+      // Открываем модальное окно создания записи
+      if (typeof Modal !== 'undefined' && Modal.showCreate) {
+        Modal.showCreate(day, month, year);
+      } else {
+        alert(`Вы выбрали ${day}.${month}.${year}`);
+      }
     });
     Calendar.onMonthChange = onMonthChange;
     isInitialized = true;
@@ -149,48 +154,41 @@
     }
   });
 
+  // ===== Проверка загрузки модулей =====
+  function checkModules() {
+    const modules = [
+      { name: 'CONFIG', obj: typeof CONFIG !== 'undefined' },
+      { name: 'Cache', obj: typeof Cache !== 'undefined' },
+      { name: 'API', obj: typeof API !== 'undefined' },
+      { name: 'CanvasRenderer', obj: typeof CanvasRenderer !== 'undefined' },
+      { name: 'Calendar', obj: typeof Calendar !== 'undefined' },
+      { name: 'Auth', obj: typeof Auth !== 'undefined' },
+      { name: 'Modal', obj: typeof Modal !== 'undefined' }
+    ];
+
+    let allLoaded = true;
+    for (const mod of modules) {
+      if (!mod.obj) {
+        console.error(`❌ Модуль ${mod.name} не загружен`);
+        allLoaded = false;
+      }
+    }
+
+    if (!allLoaded) {
+      showMessage('Ошибка загрузки приложения. Проверьте консоль.', 'error');
+      return false;
+    }
+
+    console.log('✅ Все модули загружены');
+    return true;
+  }
+
   // ===== Инициализация =====
-  // Проверяем, что все модули загружены
-  if (typeof CONFIG === 'undefined') {
-    console.error('❌ Модуль CONFIG не загружен');
-    showMessage('Ошибка загрузки приложения', 'error');
-    return;
+  if (checkModules()) {
+    autoLogin();
   }
 
-  if (typeof Cache === 'undefined') {
-    console.error('❌ Модуль Cache не загружен');
-    showMessage('Ошибка загрузки приложения', 'error');
-    return;
-  }
-
-  if (typeof API === 'undefined') {
-    console.error('❌ Модуль API не загружен');
-    showMessage('Ошибка загрузки приложения', 'error');
-    return;
-  }
-
-  if (typeof CanvasRenderer === 'undefined') {
-    console.error('❌ Модуль CanvasRenderer не загружен');
-    showMessage('Ошибка загрузки приложения', 'error');
-    return;
-  }
-
-  if (typeof Calendar === 'undefined') {
-    console.error('❌ Модуль Calendar не загружен');
-    showMessage('Ошибка загрузки приложения', 'error');
-    return;
-  }
-
-  if (typeof Auth === 'undefined') {
-    console.error('❌ Модуль Auth не загружен');
-    showMessage('Ошибка загрузки приложения', 'error');
-    return;
-  }
-
-  console.log('✅ Все модули загружены');
-  autoLogin();
+  // ===== Делаем loadAndRender глобальной для Modal =====
+  window.loadAndRender = loadAndRender;
 
 })();
-
-// ===== Глобальная функция для обновления после сохранения =====
-window.loadAndRender = loadAndRender;
