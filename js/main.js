@@ -7,6 +7,8 @@
   const elements = {
     authBlock: document.getElementById('authBlock'),
     calendarContainer: document.getElementById('calendarContainer'),
+    detailContainer: document.getElementById('detailContainer'),
+    appHeader: document.getElementById('appHeader'),
     loginForm: document.getElementById('loginForm'),
     usernameInput: document.getElementById('username'),
     passwordInput: document.getElementById('password'),
@@ -40,18 +42,24 @@
   function showLoader() {
     elements.authBlock.style.display = 'none';
     elements.calendarContainer.style.display = 'none';
+    elements.detailContainer.style.display = 'none';
+    elements.appHeader.style.display = 'none';
     elements.loaderEl.style.display = 'flex';
   }
 
   function showAuth() {
     elements.authBlock.style.display = 'block';
     elements.calendarContainer.style.display = 'none';
+    elements.detailContainer.style.display = 'none';
+    elements.appHeader.style.display = 'none';
     elements.loaderEl.style.display = 'none';
   }
 
   function showCalendar() {
     elements.authBlock.style.display = 'none';
     elements.calendarContainer.style.display = 'block';
+    elements.detailContainer.style.display = 'none';
+    elements.appHeader.style.display = 'flex';
     elements.loaderEl.style.display = 'none';
   }
 
@@ -88,9 +96,9 @@
     
     Calendar.init(elements.calendarContainer, (day) => {
       const { year, month } = Calendar.getCurrentMonth();
-      // Открываем модальное окно создания записи
-      if (typeof Modal !== 'undefined' && Modal.showCreate) {
-        Modal.showCreate(day, month, year);
+      // Переход в детальный режим
+      if (typeof Detail !== 'undefined' && Detail.show) {
+        Detail.show(year, month, day, Calendar.recordsData);
       } else {
         alert(`Вы выбрали ${day}.${month}.${year}`);
       }
@@ -154,6 +162,13 @@
     }
   });
 
+  // ===== Выход =====
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    if (confirm('Вы уверены, что хотите выйти?')) {
+      Auth.logout();
+    }
+  });
+
   // ===== Проверка загрузки модулей =====
   function checkModules() {
     const modules = [
@@ -163,7 +178,8 @@
       { name: 'CanvasRenderer', obj: typeof CanvasRenderer !== 'undefined' },
       { name: 'Calendar', obj: typeof Calendar !== 'undefined' },
       { name: 'Auth', obj: typeof Auth !== 'undefined' },
-      { name: 'Modal', obj: typeof Modal !== 'undefined' }
+      { name: 'Modal', obj: typeof Modal !== 'undefined' },
+      { name: 'Detail', obj: typeof Detail !== 'undefined' }
     ];
 
     let allLoaded = true;

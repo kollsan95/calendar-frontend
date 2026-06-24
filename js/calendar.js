@@ -129,7 +129,7 @@ const Calendar = {
     // Определяем первый день месяца
     const firstDay = new Date(this.year, this.month - 1, 1);
     const lastDay = new Date(this.year, this.month, 0);
-    const firstDayOfWeek = firstDay.getDay() || 7; // Пн = 1, Вс = 7
+    const firstDayOfWeek = firstDay.getDay() || 7;
 
     // Пустые ячейки
     for (let i = 1; i < firstDayOfWeek; i++) {
@@ -170,18 +170,18 @@ const Calendar = {
         transition: transform 0.2s, box-shadow 0.2s;
       `;
 
-      // Обработчик клика
-      const onClick = () => {
-        if (this.onDayClick) {
-          this.onDayClick(day);
-        }
-      };
-
       // Рисуем плитку
       const records = this.getRecords(day);
       CanvasRenderer.drawTile(canvas, day, this.recordsData, false);
 
-      // Добавляем hover-эффект
+      // Обработчик клика — переход в детальный режим
+      canvas.addEventListener('click', () => {
+        if (this.onDayClick) {
+          this.onDayClick(day);
+        }
+      });
+
+      // Hover-эффекты
       canvas.addEventListener('mouseenter', () => {
         canvas.style.transform = 'scale(1.05)';
         canvas.style.boxShadow = '0 4px 12px rgba(0, 128, 128, 0.2)';
@@ -190,8 +190,6 @@ const Calendar = {
         canvas.style.transform = 'scale(1)';
         canvas.style.boxShadow = 'none';
       });
-
-      canvas.addEventListener('click', onClick);
 
       cell.appendChild(canvas);
       grid.appendChild(cell);
