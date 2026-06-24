@@ -16,9 +16,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create config.js from secret
+      - name: Inject GAS_URL into index.html
+        env:
+          GAS_URL: ${{ secrets.GAS_URL }}
         run: |
-          echo "const GAS_URL = '${{ secrets.GAS_URL }}';" > config.js
+          if [ -z "$GAS_URL" ]; then
+            echo "::error::Secret GAS_URL is not set"
+            exit 1
+          fi
+          # Заменяем маркер {{GAS_URL}} в index.html на реальный URL
+          sed -i "s|{{GAS_URL}}|$GAS_URL|g" index.html
+          echo "✅ GAS_URL injected into index.html"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -27,6 +35,3 @@ jobs:
           publish_dir: ./
           publish_branch: gh-pages
           force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy with GAS_URL from secret'

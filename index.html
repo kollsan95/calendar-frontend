@@ -224,20 +224,20 @@
     <div id="calendarContainer"></div>
   </div>
 
-  <!-- ====== Подключение config.js ====== -->
-  <script src="config.js"></script>
-  
-  <!-- ====== Проверка конфигурации ====== -->
+  <!-- ====== ИНЖЕКЦИЯ GAS_URL (маркер заменяется GitHub Actions) ====== -->
   <script>
-    // Проверка, что config.js загружен и задал GAS_URL
-    if (typeof GAS_URL === 'undefined') {
+    // Маркер {{GAS_URL}} будет заменён на реальный URL во время деплоя
+    const GAS_URL = '{{GAS_URL}}';
+    
+    // Проверка, что URL был подставлен
+    if (GAS_URL === '{{GAS_URL}}' || !GAS_URL || GAS_URL.trim() === '') {
       document.getElementById('message').className = 'message error';
       document.getElementById('message').textContent = 'Ошибка конфигурации: не найден URL бэкенда.';
       document.getElementById('message').style.display = 'block';
       document.getElementById('loginBtn').disabled = true;
-      throw new Error('GAS_URL is not defined. Проверьте config.js');
+      throw new Error('GAS_URL is not defined. Проверьте настройки деплоя.');
     }
-
+    
     console.log('✅ GAS_URL загружен:', GAS_URL);
   </script>
 
@@ -280,20 +280,14 @@
       function checkToken() {
         const token = localStorage.getItem('authToken');
         if (!token) return false;
-
-        // Пока просто проверяем наличие токена
-        // В будущем здесь будет валидация на сервере
         return true;
       }
 
       // ===== Автоматический вход, если есть токен =====
       function autoLogin() {
         if (checkToken()) {
-          // Пока только уведомление, в будущем — загрузка календаря
           showMessage('Вы уже авторизованы. Загрузка календаря...', 'success');
-          // В следующем этапе здесь будет вызов /getData
           setTimeout(() => {
-            // Заглушка — переключим интерфейс
             authBlock.style.display = 'none';
             calendarContainer.style.display = 'block';
             calendarContainer.innerHTML = `
@@ -327,7 +321,6 @@
         try {
           // Формируем URL для запроса к GAS
           const url = new URL(GAS_URL);
-          // Добавляем параметры (пока логин не реализован, просто проверяем соединение)
           url.searchParams.append('action', 'login');
           url.searchParams.append('username', username);
           url.searchParams.append('password', password);
@@ -347,11 +340,9 @@
 
           // Временная проверка (пока бэкенд возвращает простой ответ)
           if (data.status === 'ok') {
-            // Сохраняем токен (в будущем — настоящий токен)
             localStorage.setItem('authToken', username);
             showMessage('Вход выполнен успешно!', 'success');
 
-            // Переключаем интерфейс на календарь
             setTimeout(() => {
               authBlock.style.display = 'none';
               calendarContainer.style.display = 'block';
@@ -375,10 +366,7 @@
       });
 
       // ===== Инициализация =====
-      // Проверяем, есть ли уже токен
       autoLogin();
-
-      // Если нет токена — оставляем форму входа
       console.log('🔐 Ожидание входа...');
 
     })();
