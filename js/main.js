@@ -42,7 +42,9 @@
   function showLoader() {
     elements.authBlock.style.display = 'none';
     elements.calendarContainer.style.display = 'none';
-    elements.detailContainer.style.display = 'none';
+    if (elements.detailContainer) {
+      elements.detailContainer.style.display = 'none';
+    }
     elements.appHeader.style.display = 'none';
     elements.loaderEl.style.display = 'flex';
   }
@@ -50,7 +52,9 @@
   function showAuth() {
     elements.authBlock.style.display = 'block';
     elements.calendarContainer.style.display = 'none';
-    elements.detailContainer.style.display = 'none';
+    if (elements.detailContainer) {
+      elements.detailContainer.style.display = 'none';
+    }
     elements.appHeader.style.display = 'none';
     elements.loaderEl.style.display = 'none';
   }
@@ -58,7 +62,9 @@
   function showCalendar() {
     elements.authBlock.style.display = 'none';
     elements.calendarContainer.style.display = 'block';
-    elements.detailContainer.style.display = 'none';
+    if (elements.detailContainer) {
+      elements.detailContainer.style.display = 'none';
+    }
     elements.appHeader.style.display = 'flex';
     elements.loaderEl.style.display = 'none';
   }
@@ -94,6 +100,13 @@
   function initCalendar() {
     if (isInitialized) return;
     
+    // Инициализируем детальный режим
+    if (typeof Detail !== 'undefined' && Detail.init) {
+      Detail.init(elements.detailContainer);
+    } else {
+      console.warn('⚠️ Detail module not loaded');
+    }
+
     Calendar.init(elements.calendarContainer, (day) => {
       const { year, month } = Calendar.getCurrentMonth();
       // Переход в детальный режим
@@ -163,11 +176,14 @@
   });
 
   // ===== Выход =====
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите выйти?')) {
-      Auth.logout();
-    }
-  });
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      if (confirm('Вы уверены, что хотите выйти?')) {
+        Auth.logout();
+      }
+    });
+  }
 
   // ===== Проверка загрузки модулей =====
   function checkModules() {
@@ -201,6 +217,10 @@
 
   // ===== Инициализация =====
   if (checkModules()) {
+    // Инициализация Detail до autoLogin
+    if (typeof Detail !== 'undefined' && Detail.init && elements.detailContainer) {
+      Detail.init(elements.detailContainer);
+    }
     autoLogin();
   }
 

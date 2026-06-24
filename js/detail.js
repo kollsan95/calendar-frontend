@@ -18,11 +18,11 @@ const Detail = {
   /**
    * Войти в детальный режим
    */
-  show(year, month, day, records) {
+  show(year, month, day, recordsData) {
     this.year = year;
     this.month = month;
     this.day = day;
-    this.recordsData = records;
+    this.recordsData = recordsData || {};
     this.isActive = true;
 
     this.render();
@@ -33,16 +33,26 @@ const Detail = {
    */
   hide() {
     this.isActive = false;
-    this.container.innerHTML = '';
-    this.container.style.display = 'none';
+    if (this.container) {
+      this.container.innerHTML = '';
+      this.container.style.display = 'none';
+    }
     // Показываем календарь
-    document.getElementById('calendarContainer').style.display = 'block';
+    const calendarContainer = document.getElementById('calendarContainer');
+    if (calendarContainer) {
+      calendarContainer.style.display = 'block';
+    }
   },
 
   /**
    * Отрисовать детальный режим
    */
   render() {
+    if (!this.container) {
+      console.error('❌ Detail container not initialized');
+      return;
+    }
+
     const container = this.container;
     container.style.display = 'block';
     container.innerHTML = '';
@@ -94,7 +104,11 @@ const Detail = {
     // Рисуем увеличенную плитку
     const dateKey = `${this.year}-${String(this.month).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`;
     const dayRecords = this.recordsData[dateKey] || [];
-    CanvasRenderer.drawTile(canvas, this.day, { [dateKey]: dayRecords }, false);
+    
+    // Передаём объект с записями для отрисовки
+    const recordsForDay = {};
+    recordsForDay[dateKey] = dayRecords;
+    CanvasRenderer.drawTile(canvas, this.day, recordsForDay, false);
 
     tileContainer.appendChild(canvas);
     container.appendChild(tileContainer);
@@ -168,11 +182,18 @@ const Detail = {
       cursor: pointer;
     `;
     addBtn.addEventListener('click', () => {
-      Modal.showCreate(this.day, this.month, this.year);
+      if (typeof Modal !== 'undefined' && Modal.showCreate) {
+        Modal.showCreate(this.day, this.month, this.year);
+      } else {
+        alert('Модальное окно не загружено');
+      }
     });
     container.appendChild(addBtn);
 
     // Скрываем основной календарь
-    document.getElementById('calendarContainer').style.display = 'none';
+    const calendarContainer = document.getElementById('calendarContainer');
+    if (calendarContainer) {
+      calendarContainer.style.display = 'none';
+    }
   }
 };
