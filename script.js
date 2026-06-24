@@ -3,20 +3,8 @@
 
   // URL подставляется GitHub Actions
   const GAS_URL = '{{GAS_URL}}';
-  
-  // Проверка: если URL остался маркером или пустой — ошибка
-  if (GAS_URL === '{{GAS_URL}}' || !GAS_URL || GAS_URL.trim() === '') {
-    const messageEl = document.getElementById('message');
-    messageEl.className = 'message error';
-    messageEl.textContent = 'Ошибка конфигурации: не найден URL бэкенда.';
-    messageEl.style.display = 'block';
-    document.getElementById('loginBtn').disabled = true;
-    throw new Error('GAS_URL is not defined. Проверьте настройки деплоя.');
-  }
-  
-  console.log('✅ GAS_URL загружен:', GAS_URL);
 
-  // ===== Остальной код (без изменений) =====
+  // ===== Элементы =====
   const authBlock = document.getElementById('authBlock');
   const calendarContainer = document.getElementById('calendarContainer');
   const loginForm = document.getElementById('loginForm');
@@ -25,8 +13,10 @@
   const loginBtn = document.getElementById('loginBtn');
   const messageEl = document.getElementById('message');
 
+  // ===== Состояние =====
   let isProcessing = false;
 
+  // ===== Вспомогательные функции =====
   function showMessage(text, type = 'error') {
     messageEl.className = `message ${type}`;
     messageEl.textContent = text;
@@ -44,11 +34,12 @@
     loginBtn.textContent = loading ? 'Вход...' : 'Войти';
   }
 
+  // ===== Проверка токена =====
   function checkToken() {
-    const token = localStorage.getItem('authToken');
-    return !!token;
+    return !!localStorage.getItem('authToken');
   }
 
+  // ===== Автоматический вход =====
   function autoLogin() {
     if (checkToken()) {
       showMessage('Вы уже авторизованы. Загрузка календаря...', 'success');
@@ -66,6 +57,7 @@
     }
   }
 
+  // ===== Обработка формы входа =====
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideMessage();
@@ -120,14 +112,13 @@
         showMessage(data.message || 'Неверное имя пользователя или пароль.', 'error');
       }
     } catch (err) {
-      console.error('Ошибка входа:', err);
       showMessage(`Ошибка соединения: ${err.message}`, 'error');
     } finally {
       setLoading(false);
     }
   });
 
+  // ===== Инициализация =====
   autoLogin();
-  console.log('🔐 Ожидание входа...');
 
 })();
