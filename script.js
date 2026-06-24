@@ -28,6 +28,7 @@
   const passwordInput = document.getElementById('password');
   const loginBtn = document.getElementById('loginBtn');
   const messageEl = document.getElementById('message');
+  const loaderEl = document.getElementById('loader');
 
   // ===== Состояние =====
   let isProcessing = false;
@@ -50,26 +51,78 @@
     loginBtn.textContent = loading ? 'Вход...' : 'Войти';
   }
 
+  function showLoader() {
+    authBlock.style.display = 'none';
+    calendarContainer.style.display = 'none';
+    loaderEl.style.display = 'flex';
+  }
+
+  function showAuth() {
+    authBlock.style.display = 'block';
+    calendarContainer.style.display = 'none';
+    loaderEl.style.display = 'none';
+  }
+
+  function showCalendar() {
+    authBlock.style.display = 'none';
+    calendarContainer.style.display = 'block';
+    loaderEl.style.display = 'none';
+  }
+
   // ===== Проверка токена =====
   function checkToken() {
     return !!localStorage.getItem('authToken');
   }
 
+  // ===== Валидация токена на сервере =====
+  async function validateToken() {
+    const token = localStorage.getItem('authToken');
+    if (!token) return false;
+
+    try {
+      const url = new URL(GAS_URL);
+      url.searchParams.append('action', 'validate');
+      url.searchParams.append('token', token);
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.ok) return false;
+
+      const data = await response.json();
+      return data.status === 'ok';
+    } catch (err) {
+      return false;
+    }
+  }
+
   // ===== Автоматический вход =====
-  function autoLogin() {
-    if (checkToken()) {
-      showMessage('Вы уже авторизованы. Загрузка календаря...', 'success');
-      setTimeout(() => {
-        authBlock.style.display = 'none';
-        calendarContainer.style.display = 'block';
-        calendarContainer.innerHTML = `
-          <div style="text-align: center; padding: 40px 0;">
-            <p style="font-size: 18px; color: #008080;">📅 Календарь загружается...</p>
-            <p style="font-size: 14px; color: #7B8D8E; margin-top: 8px;">Функционал будет доступен в следующем этапе</p>
-          </div>
-        `;
-        hideMessage();
-      }, 1000);
+  async function autoLogin() {
+    showLoader();
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      showAuth();
+      return;
+    }
+
+    // Валидируем токен на сервере
+    const isValid = await validateToken();
+    if (isValid) {
+      // Токен валиден — загружаем календарь
+      calendarContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px 0;">
+          <p style="font-size: 18px; color: #008080;">📅 Календарь загружается...</p>
+          <p style="font-size: 14px; color: #7B8D8E; margin-top: 8px;">Функционал будет доступен в следующем этапе</p>
+        </div>
+      `;
+      showCalendar();
+    } else {
+      // Токен невалиден — очищаем и показываем форму
+      localStorage.removeItem('authToken');
+      showAuth();
     }
   }
 
@@ -89,6 +142,7 @@
     }
 
     setLoading(true);
+    showLoader();
 
     try {
       const url = new URL(GAS_URL);
@@ -98,9 +152,7 @@
 
       const response = await fetch(url.toString(), {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
       });
 
       if (!response.ok) {
@@ -111,23 +163,21 @@
 
       if (data.status === 'ok') {
         localStorage.setItem('authToken', username);
-        showMessage('Вход выполнен успешно!', 'success');
+        localStorage.setItem('userRole', data.user.role);
 
-        setTimeout(() => {
-          authBlock.style.display = 'none';
-          calendarContainer.style.display = 'block';
-          calendarContainer.innerHTML = `
-            <div style="text-align: center; padding: 40px 0;">
-              <p style="font-size: 18px; color: #008080;">Добро пожаловать, ${username}! 👋</p>
-              <p style="font-size: 14px; color: #7B8D8E; margin-top: 8px;">Календарь появится в следующем этапе</p>
-            </div>
-          `;
-          hideMessage();
-        }, 800);
+        calendarContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px 0;">
+            <p style="font-size: 18px; color: #008080;">Добро пожаловать, ${username}! 👋</p>
+            <p style="font-size: 14px; color: #7B8D8E; margin-top: 8px;">Календарь появится в следующем этапе</p>
+          </div>
+        `;
+        showCalendar();
       } else {
+        showAuth();
         showMessage(data.message || 'Неверное имя пользователя или пароль.', 'error');
       }
     } catch (err) {
+      showAuth();
       showMessage(`Ошибка соединения: ${err.message}`, 'error');
     } finally {
       setLoading(false);
