@@ -2,7 +2,7 @@
 
 const API = {
   /**
-   * Базовый запрос к GAS
+   * Базовый запрос к GAS (GET)
    */
   async request(params) {
     const url = new URL(CONFIG.GAS_URL);
@@ -13,6 +13,26 @@ const API = {
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ошибка сервера: ${response.status}`);
+    }
+
+    return await response.json();
+  },
+
+  /**
+   * Базовый POST-запрос
+   */
+  async postRequest(data) {
+    const response = await fetch(CONFIG.GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {
@@ -73,18 +93,49 @@ const API = {
   },
 
   /**
-   * Сохранение записи (будет в следующем этапе)
+   * Сохранение записи
    */
   async saveRecord(record) {
-    // TODO: реализовать в следующем этапе
-    throw new Error('Метод saveRecord пока не реализован');
+    const data = await this.postRequest({
+      action: 'saveRecord',
+      ...record
+    });
+
+    if (data.status !== 'ok') {
+      throw new Error(data.message || 'Ошибка сохранения');
+    }
+
+    return data;
   },
 
   /**
-   * Удаление записи (будет в следующем этапе)
+   * Удаление записи
    */
   async deleteRecord(recordId) {
-    // TODO: реализовать в следующем этапе
-    throw new Error('Метод deleteRecord пока не реализован');
+    const data = await this.postRequest({
+      action: 'deleteRecord',
+      recordId: recordId
+    });
+
+    if (data.status !== 'ok') {
+      throw new Error(data.message || 'Ошибка удаления');
+    }
+
+    return data;
+  },
+
+  /**
+   * Получение списка пользователей
+   */
+  async getUsers() {
+    const data = await this.request({
+      action: 'getUsers'
+    });
+
+    if (data.status === 'ok') {
+      return data.users || [];
+    } else {
+      throw new Error(data.message || 'Ошибка получения пользователей');
+    }
   }
 };

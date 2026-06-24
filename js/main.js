@@ -191,3 +191,6 @@
   autoLogin();
 
 })();
+
+// ===== Глобальная функция для обновления после сохранения =====
+window.loadAndRender = loadAndRender;
