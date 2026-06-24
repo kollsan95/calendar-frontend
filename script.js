@@ -1,10 +1,10 @@
 (function() {
   'use strict';
 
-  // Маркер {{GAS_URL}} будет заменён GitHub Actions
+  // URL подставляется GitHub Actions
   const GAS_URL = '{{GAS_URL}}';
   
-  // Проверка, что URL был подставлен
+  // Проверка: если URL остался маркером или пустой — ошибка
   if (GAS_URL === '{{GAS_URL}}' || !GAS_URL || GAS_URL.trim() === '') {
     const messageEl = document.getElementById('message');
     messageEl.className = 'message error';
@@ -16,7 +16,7 @@
   
   console.log('✅ GAS_URL загружен:', GAS_URL);
 
-  // ===== Элементы =====
+  // ===== Остальной код (без изменений) =====
   const authBlock = document.getElementById('authBlock');
   const calendarContainer = document.getElementById('calendarContainer');
   const loginForm = document.getElementById('loginForm');
@@ -25,10 +25,8 @@
   const loginBtn = document.getElementById('loginBtn');
   const messageEl = document.getElementById('message');
 
-  // ===== Состояние =====
   let isProcessing = false;
 
-  // ===== Вспомогательные функции =====
   function showMessage(text, type = 'error') {
     messageEl.className = `message ${type}`;
     messageEl.textContent = text;
@@ -46,13 +44,11 @@
     loginBtn.textContent = loading ? 'Вход...' : 'Войти';
   }
 
-  // ===== Проверка токена =====
   function checkToken() {
     const token = localStorage.getItem('authToken');
     return !!token;
   }
 
-  // ===== Автоматический вход =====
   function autoLogin() {
     if (checkToken()) {
       showMessage('Вы уже авторизованы. Загрузка календаря...', 'success');
@@ -70,7 +66,6 @@
     }
   }
 
-  // ===== Обработка формы входа =====
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideMessage();
@@ -132,7 +127,6 @@
     }
   });
 
-  // ===== Инициализация =====
   autoLogin();
   console.log('🔐 Ожидание входа...');
 
