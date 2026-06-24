@@ -1,6 +1,5 @@
 (function() {
   'use strict';
-
   // URL подставляется GitHub Actions
   const GAS_URL = '{{GAS_URL}}';
 
