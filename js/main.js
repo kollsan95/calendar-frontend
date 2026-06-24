@@ -84,11 +84,14 @@
 
   // ===== Инициализация календаря =====
   function initCalendar() {
+    if (isInitialized) return;
+    
     Calendar.init(elements.calendarContainer, (day) => {
       const { year, month } = Calendar.getCurrentMonth();
       alert(`Вы выбрали ${day}.${month}.${year}`);
     });
     Calendar.onMonthChange = onMonthChange;
+    isInitialized = true;
   }
 
   // ===== Автоматический вход =====
@@ -147,6 +150,44 @@
   });
 
   // ===== Инициализация =====
+  // Проверяем, что все модули загружены
+  if (typeof CONFIG === 'undefined') {
+    console.error('❌ Модуль CONFIG не загружен');
+    showMessage('Ошибка загрузки приложения', 'error');
+    return;
+  }
+
+  if (typeof Cache === 'undefined') {
+    console.error('❌ Модуль Cache не загружен');
+    showMessage('Ошибка загрузки приложения', 'error');
+    return;
+  }
+
+  if (typeof API === 'undefined') {
+    console.error('❌ Модуль API не загружен');
+    showMessage('Ошибка загрузки приложения', 'error');
+    return;
+  }
+
+  if (typeof CanvasRenderer === 'undefined') {
+    console.error('❌ Модуль CanvasRenderer не загружен');
+    showMessage('Ошибка загрузки приложения', 'error');
+    return;
+  }
+
+  if (typeof Calendar === 'undefined') {
+    console.error('❌ Модуль Calendar не загружен');
+    showMessage('Ошибка загрузки приложения', 'error');
+    return;
+  }
+
+  if (typeof Auth === 'undefined') {
+    console.error('❌ Модуль Auth не загружен');
+    showMessage('Ошибка загрузки приложения', 'error');
+    return;
+  }
+
+  console.log('✅ Все модули загружены');
   autoLogin();
 
 })();

@@ -64,15 +64,21 @@ const Cache = {
   }
 };
 
-// Версия приложения — очищаем кеш при обновлении
-const STORAGE_VERSION_KEY = 'app_version';
-const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
-if (storedVersion && storedVersion !== CONFIG.APP_VERSION) {
-  localStorage.clear();
-  localStorage.setItem(STORAGE_VERSION_KEY, CONFIG.APP_VERSION);
-  window.location.reload();
-  return;
-}
-if (!storedVersion) {
-  localStorage.setItem(STORAGE_VERSION_KEY, CONFIG.APP_VERSION);
-}
+// ===== Проверка версии (без return) =====
+(function checkVersion() {
+  const STORAGE_VERSION_KEY = 'app_version';
+  const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+  
+  // Если версия изменилась — очищаем всё
+  if (storedVersion && storedVersion !== CONFIG.APP_VERSION) {
+    localStorage.clear();
+    localStorage.setItem(STORAGE_VERSION_KEY, CONFIG.APP_VERSION);
+    window.location.reload();
+    return;
+  }
+  
+  // Если версии нет — устанавливаем
+  if (!storedVersion) {
+    localStorage.setItem(STORAGE_VERSION_KEY, CONFIG.APP_VERSION);
+  }
+})();
