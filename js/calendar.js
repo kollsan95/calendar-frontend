@@ -7,6 +7,7 @@ const Calendar = {
     onDayClick: null,
     filter: 'all',
     userFilter: null,
+    isFreeMode: false,
 
     init(container, onDayClick = null) {
         this.container = container;
@@ -33,23 +34,22 @@ const Calendar = {
 
         // Заголовок с навигацией
         const header = document.createElement('div');
-        header.style.cssText = `display:flex;justify-content:space-between;align-items:center;padding:10px 0 16px 0;margin-bottom:16px;border-bottom:1px solid #E0F2F1;`;
+        header.style.cssText = `display:flex;justify-content:space-between;align-items:center;padding:6px 0 10px 0;margin-bottom:6px;border-bottom:1px solid #E0F2F1;`;
         header.innerHTML = `
             <button id="prevMonth" style="background:none;border:none;font-size:28px;color:#008080;cursor:pointer;padding:0 12px;line-height:1;">‹</button>
-            <span style="font-size:20px;font-weight:600;color:#008080;text-transform:capitalize;">${new Date(this.year, this.month - 1).toLocaleString('ru', { month: 'long', year: 'numeric' })}</span>
+            <span style="font-size:18px;font-weight:600;color:#008080;text-transform:capitalize;">${new Date(this.year, this.month - 1).toLocaleString('ru', { month: 'long', year: 'numeric' })}</span>
             <button id="nextMonth" style="background:none;border:none;font-size:28px;color:#008080;cursor:pointer;padding:0 12px;line-height:1;">›</button>
         `;
         container.appendChild(header);
 
         // Сетка
         const grid = document.createElement('div');
-        grid.style.cssText = `display:grid;grid-template-columns:repeat(7,1fr);gap:8px;max-width:100%;margin:0 auto;`;
+        grid.style.cssText = `display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:100%;margin:0 auto;`;
 
-        // Дни недели
         const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         daysOfWeek.forEach(day => {
             const el = document.createElement('div');
-            el.style.cssText = `text-align:center;font-size:12px;font-weight:600;color:#7B8D8E;padding:4px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;`;
+            el.style.cssText = `text-align:center;font-size:11px;font-weight:600;color:#7B8D8E;padding:2px 0 4px 0;text-transform:uppercase;letter-spacing:0.3px;`;
             el.textContent = day;
             grid.appendChild(el);
         });
@@ -82,7 +82,7 @@ const Calendar = {
             canvas.height = 120;
             canvas.style.cssText = `width:100%;height:100%;cursor:pointer;border-radius:50%;transition:transform 0.2s,box-shadow 0.2s;`;
 
-            CanvasRenderer.drawTile(canvas, day, this.recordsData, this.year, this.month, false, this.filter, this.userFilter);
+            CanvasRenderer.drawTile(canvas, day, this.recordsData, this.year, this.month, false, this.filter, this.userFilter, this.isFreeMode);
 
             canvas.addEventListener('click', () => { if (this.onDayClick) this.onDayClick(day); });
             canvas.addEventListener('mouseenter', () => { canvas.style.transform = 'scale(1.05)'; canvas.style.boxShadow = '0 4px 12px rgba(0,128,128,0.2)'; });
@@ -116,6 +116,7 @@ const Calendar = {
     setFilter(filter, userFilter = null) {
         this.filter = filter;
         this.userFilter = userFilter;
+        this.isFreeMode = (filter === 'free');
         this.render();
     }
 };

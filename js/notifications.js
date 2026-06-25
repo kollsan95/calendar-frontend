@@ -7,19 +7,12 @@ const Notifications = {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify([]));
         }
         this.updateBadge();
-        // Показываем приветственное сообщение при первом открытии
-        if (!localStorage.getItem('notif_intro_shown')) {
-            alert('🔔 Уведомления хранятся локально и автоматически удаляются через 90 дней.');
-            localStorage.setItem('notif_intro_shown', 'true');
-        }
         // Очистка старых уведомлений (раз в день)
         this.cleanOld();
     },
 
     get() {
-        try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-        } catch { return []; }
+        try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]'); } catch { return []; }
     },
 
     save(notifications) {
@@ -37,9 +30,7 @@ const Notifications = {
             read: false
         });
         this.save(notifications);
-        this.showToast(message, type);
         this.updateBadge();
-        // Обновляем значок на ярлыке (если поддерживается)
         if (navigator.setAppBadge) navigator.setAppBadge(this.getUnreadCount());
     },
 
@@ -66,14 +57,9 @@ const Notifications = {
         const badge = document.getElementById('notifBadge');
         const count = this.getUnreadCount();
         if (badge) {
-            if (count > 0) {
-                badge.style.display = 'inline';
-                badge.textContent = count;
-            } else {
-                badge.style.display = 'none';
-            }
+            if (count > 0) { badge.style.display = 'inline'; badge.textContent = count; }
+            else { badge.style.display = 'none'; }
         }
-        // Обновляем favicon (для поддержки)
         this.updateFavicon(count);
     },
 
@@ -85,20 +71,6 @@ const Notifications = {
                 : `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>`;
             favicon.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
         }
-    },
-
-    showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        const bgColor = type === 'info' ? '#008080' : '#C62828';
-        toast.style.cssText = `
-            position:fixed;bottom:20px;right:20px;background:${bgColor};color:#FFF;
-            padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;
-            box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:3000;
-            animation:slideUp 0.3s ease;max-width:300px;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 4000);
     },
 
     cleanOld() {
@@ -115,6 +87,12 @@ const Notifications = {
     },
 
     showList() {
+        // Показываем приветственное сообщение при первом открытии списка
+        if (!localStorage.getItem('notif_intro_shown')) {
+            alert('🔔 Уведомления хранятся локально и автоматически удаляются через 90 дней.');
+            localStorage.setItem('notif_intro_shown', 'true');
+        }
+
         const notifications = this.get();
         const unread = notifications.filter(n => !n.read);
         const read = notifications.filter(n => n.read);
@@ -135,7 +113,7 @@ const Notifications = {
             <div id="notifList">
                 ${notifications.length === 0 ? '<p style="color:#7B8D8E;text-align:center;padding:20px 0;">Нет уведомлений</p>' :
                 notifications.map(n => `
-                    <div style="padding:12px;margin-bottom:8px;background:${n.read ? '#F5F5F5' : '#E0F2F1'};border-radius:10px;border-left:4px solid ${n.read ? '#B0BEC5' : '#008080'};">
+                    <div style="padding:10px 14px;margin-bottom:8px;background:${n.read ? '#F5F5F5' : '#E0F2F1'};border-radius:10px;border-left:4px solid ${n.read ? '#B0BEC5' : '#008080'};">
                         <div style="font-size:14px;color:#37474F;">${n.message}</div>
                         <div style="font-size:11px;color:#7B8D8E;margin-top:4px;">${new Date(n.timestamp).toLocaleString('ru')}</div>
                         ${!n.read ? `<button class="notif-read-btn" data-id="${n.id}" style="background:none;border:none;color:#008080;cursor:pointer;font-size:12px;margin-top:4px;">✅ Прочитано</button>` : ''}
@@ -160,27 +138,12 @@ const Notifications = {
                 this.showList();
             });
         });
-    },
-
-    /**
-     * Создать уведомление о новой записи
-     */
-    notifyNewRecord(record) {
-        const currentUser = Auth.getUser();
-        if (!currentUser) return;
-        // Если запись создана админом для другого пользователя
-        if (Auth.isAdmin() && record.username !== currentUser.username) {
-            this.add(`📝 Администратор создал для вас запись на ${record.date} в ${record.startHour}:00`, 'info');
-        }
-        // Если пользователь изменился (обновление записи)
-        // Этот метод будет вызываться из modal.js при смене пользователя
     }
 };
 
 // Инициализация
 Notifications.init();
 
-// Обработчик клика по колокольчику
 document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('notificationsBtn');
     if (btn) btn.addEventListener('click', () => Notifications.showList());

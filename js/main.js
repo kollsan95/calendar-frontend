@@ -37,10 +37,11 @@
 
     function showLoader() {
         elements.authBlock.style.display = 'none';
-        elements.calendarContainer.style.display = 'none';
+        elements.calendarContainer.style.display = 'block';
+        elements.calendarContainer.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;"><div class="spinner"></div><p style="margin-top:12px;color:#008080;font-size:14px;font-weight:500;">Загрузка...</p></div>`;
         if (elements.detailContainer) elements.detailContainer.style.display = 'none';
         elements.appHeader.style.display = 'none';
-        elements.loaderEl.style.display = 'flex';
+        elements.loaderEl.style.display = 'none';
     }
 
     function showAuth() {
@@ -57,7 +58,6 @@
         if (elements.detailContainer) elements.detailContainer.style.display = 'none';
         elements.appHeader.style.display = 'flex';
         elements.loaderEl.style.display = 'none';
-        // Инициализируем фильтры после рендеринга
         if (typeof Filters !== 'undefined') Filters.init();
         if (typeof Windows !== 'undefined') Windows.init();
     }
@@ -80,6 +80,7 @@
     }
 
     function onMonthChange(delta) {
+        showLoader();
         Calendar.changeMonth(delta);
         loadAndRender(false);
     }

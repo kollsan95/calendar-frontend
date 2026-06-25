@@ -10,14 +10,14 @@ const Modal = {
         overlay.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;animation:fadeIn 0.3s ease;`;
 
         const modal = document.createElement('div');
-        modal.style.cssText = `background:#FFFDF9;border-radius:24px;padding:32px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:slideUp 0.3s ease;`;
+        modal.style.cssText = `background:#FFFDF9;border-radius:24px;padding:28px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:slideUp 0.3s ease;`;
 
         const isAdmin = Auth.isAdmin();
         const currentUser = Auth.getUser();
 
         modal.innerHTML = `
             <h3 style="font-size:20px;font-weight:600;color:#008080;margin-bottom:8px;">📝 Новая запись</h3>
-            <p style="font-size:14px;color:#7B8D8E;margin-bottom:24px;">${day}.${month}.${year}</p>
+            <p style="font-size:14px;color:#7B8D8E;margin-bottom:20px;">${day}.${month}.${year}</p>
             <div class="form-group"><label>Время</label><div style="display:flex;gap:12px;align-items:center;">
                 <select id="modalStartHour" style="flex:1;padding:10px;border:1.5px solid #E0F2F1;border-radius:12px;font-size:16px;">${this._generateHourOptions(9, 20)}</select>
                 <span style="color:#7B8D8E;">—</span>
@@ -34,7 +34,7 @@ const Modal = {
                     <option value="Холодное">Холодное</option><option value="Полировка">Полировка</option>
                 </select>
             </div>
-            <div id="adminFields" style="${isAdmin ? 'display:block;' : 'display:none;'}">
+            <div id="adminFields" style="display:none;">
                 <div class="form-group"><label for="modalInsta">Instagram (ссылка)</label>
                     <input id="modalInsta" type="text" placeholder="https://instagram.com/..." style="width:100%;padding:10px;border:1.5px solid #E0F2F1;border-radius:12px;font-size:16px;" />
                 </div>
@@ -42,9 +42,9 @@ const Modal = {
                     <input id="modalPhone" type="text" placeholder="+7 (999) 123-45-67" style="width:100%;padding:10px;border:1.5px solid #E0F2F1;border-radius:12px;font-size:16px;" />
                 </div>
             </div>
-            <div style="display:flex;gap:12px;margin-top:24px;">
-                <button id="modalCancel" style="flex:1;padding:14px;background:#E0F2F1;color:#37474F;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;">Отмена</button>
-                <button id="modalSave" style="flex:2;padding:14px;background:#008080;color:#FFF;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;">Сохранить</button>
+            <div style="display:flex;gap:12px;margin-top:20px;">
+                <button id="modalCancel" style="flex:1;padding:12px;background:#E0F2F1;color:#37474F;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;">Отмена</button>
+                <button id="modalSave" style="flex:2;padding:12px;background:#008080;color:#FFF;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;">Сохранить</button>
             </div>
         `;
 
@@ -53,6 +53,19 @@ const Modal = {
 
         document.getElementById('modalStartHour').value = startHour;
         document.getElementById('modalEndHour').value = endHour;
+
+        // Показываем поля instagram и телефон только если выбран другой пользователь
+        const userSelect = document.getElementById('modalUser');
+        const adminFields = document.getElementById('adminFields');
+        const checkUser = () => {
+            if (isAdmin && userSelect.value !== currentUser.username) {
+                adminFields.style.display = 'block';
+            } else {
+                adminFields.style.display = 'none';
+            }
+        };
+        userSelect.addEventListener('change', checkUser);
+        checkUser();
 
         overlay.addEventListener('click', (e) => { if (e.target === overlay) this.close(); });
         document.getElementById('modalCancel').addEventListener('click', () => this.close());
@@ -85,6 +98,10 @@ const Modal = {
                 if (typeof window.loadAndRender === 'function') await window.loadAndRender(true);
                 else window.location.reload();
                 this.close();
+                // Уведомление
+                if (username !== currentUser.username) {
+                    Notifications.add(`📝 Администратор создал для вас запись на ${date} в ${startHour}:00`, 'info');
+                }
             } else alert(response.message || 'Ошибка сохранения');
         } catch (err) { alert('Ошибка сохранения: ' + err.message); }
     },
@@ -98,6 +115,7 @@ const Modal = {
     },
 
     _generateUserOptions(isAdmin, currentUser) {
+        // Загружаем пользователей из API, но пока статика
         const users = ['admin', 'user1', 'user2'];
         let options = '';
         if (isAdmin) {
@@ -108,13 +126,3 @@ const Modal = {
         return options;
     }
 };
-
-// Анимации
-(function() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-    `;
-    document.head.appendChild(style);
-})();

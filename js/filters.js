@@ -65,7 +65,6 @@ const Filters = {
     },
 
     updateUI() {
-        // Показываем/скрываем фильтры в зависимости от роли
         const container = document.getElementById('filtersContainer');
         if (container) container.style.display = 'block';
         const windowsBtn = document.getElementById('windowsBtn');
