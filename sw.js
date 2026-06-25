@@ -1,51 +1,33 @@
 // =============================================
-//  Service Worker для офлайн-режима
-//  Версия: 2.0
+//  Service Worker для PWA-обёртки
 // =============================================
 
-const CACHE_NAME = 'calendar-app-v2';
+const CACHE_NAME = 'calendar-pwa-v2';
 
-// {{GAS_URL}} заменяется GitHub Actions
-// НЕ кешируем GAS-URL, чтобы избежать ошибок
-const GAS_URL = '{{GAS_URL}}';
-
-// Кешируем только статические файлы
 const urlsToCache = [
   '/calendar-frontend/',
   '/calendar-frontend/index.html',
-  '/calendar-frontend/styles.css',
   '/calendar-frontend/sw.js',
   '/calendar-frontend/manifest.json',
   '/calendar-frontend/favicon.ico',
-  '/calendar-frontend/icons/icon-72.png',
-  '/calendar-frontend/icons/icon-96.png',
-  '/calendar-frontend/icons/icon-128.png',
-  '/calendar-frontend/icons/icon-144.png',
-  '/calendar-frontend/icons/icon-152.png',
   '/calendar-frontend/icons/icon-192.png',
-  '/calendar-frontend/icons/icon-384.png',
   '/calendar-frontend/icons/icon-512.png'
 ];
 
-// === Установка ===
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(function(cache) {
-        console.log('📦 Кеширование статических файлов...');
+        console.log('📦 Кеширование PWA-обёртки...');
         return cache.addAll(urlsToCache);
       })
       .then(function() {
-        console.log('✅ Все статические файлы закешированы');
+        console.log('✅ PWA-обёртка закеширована');
         return self.skipWaiting();
-      })
-      .catch(function(error) {
-        console.warn('⚠️ Ошибка кеширования:', error);
       })
   );
 });
 
-// === Активация ===
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
@@ -65,51 +47,31 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-// === Перехват запросов ===
 self.addEventListener('fetch', function(event) {
   var request = event.request;
 
-  // === Стратегия для GAS-запросов: только сеть ===
+  // GAS-запросы не кешируем
   if (request.url.includes('script.google.com')) {
-    event.respondWith(
-      fetch(request)
-        .then(function(response) {
-          return response;
-        })
-        .catch(function() {
-          // Если офлайн — возвращаем ошибку
-          return new Response('Нет подключения к интернету', {
-            status: 503,
-            statusText: 'Service Unavailable'
-          });
-        })
-    );
+    event.respondWith(fetch(request));
     return;
   }
 
-  // === Для всех остальных запросов: сначала сеть, потом кеш ===
+  // Статические файлы — сначала сеть, потом кеш
   event.respondWith(
     fetch(request)
       .then(function(response) {
-        // Кешируем успешные ответы
         if (response && response.status === 200 && request.method === 'GET') {
           var responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then(function(cache) {
-              cache.put(request, responseToCache);
-            });
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(request, responseToCache);
+          });
         }
         return response;
       })
       .catch(function() {
-        // Если сеть недоступна — пробуем кеш
         return caches.match(request)
           .then(function(cachedResponse) {
-            if (cachedResponse) {
-              console.log('📦 Офлайн: отдаём из кеша:', request.url);
-              return cachedResponse;
-            }
-            // Если ничего нет — возвращаем страницу-заглушку
+            if (cachedResponse) return cachedResponse;
             if (request.mode === 'navigate') {
               return caches.match('/calendar-frontend/index.html');
             }
@@ -117,4 +79,19 @@ self.addEventListener('fetch', function(event) {
           });
       })
   );
+});
+
+// Обработка сообщений от приложения
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'showNotification') {
+    self.registration.showNotification(event.data.title || 'Календарь мастера', {
+      body: event.data.body || '',
+      icon: '/calendar-frontend/icons/icon-192.png',
+      badge: '/calendar-frontend/icons/icon-72.png',
+      vibrate: [200, 100, 200],
+      data: {
+        timestamp: event.data.timestamp || Date.now()
+      }
+    });
+  }
 });

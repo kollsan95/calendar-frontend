@@ -5,61 +5,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Календарь мастера</title>
 
+  <!-- PWA Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#008080" />
-  
-  <!-- ПРАВИЛЬНЫЕ ПУТИ (относительные) -->
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="/calendar-frontend/manifest.json" />
+  <link rel="icon" href="/calendar-frontend/favicon.ico" />
+  <link rel="apple-touch-icon" href="/calendar-frontend/icons/icon-192.png" />
 
   <style>
-    /* Дополнительные стили для обёртки (если styles.css не загрузится) */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; width: 100%; overflow: hidden; background: #FFFDF9; }
-    #app-frame { width: 100%; height: 100%; border: none; }
-    .loader {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: #FFFDF9; z-index: 1000; transition: opacity 0.5s ease;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .loader.hidden { opacity: 0; pointer-events: none; }
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #FFFDF9;
+    }
+    #app-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #FFFDF9;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+      font-family: 'Montserrat', sans-serif;
+      color: #008080;
+    }
+    .loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
     .loader .spinner {
-      width: 48px; height: 48px; border: 4px solid #E0F2F1;
-      border-top: 4px solid #008080; border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      border: 4px solid #E0F2F1;
+      border-top: 4px solid #008080;
+      border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-    .loader p { margin-top: 20px; font-family: 'Montserrat', sans-serif; color: #008080; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loader p {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
     .install-banner {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: #008080; color: #FFF; padding: 12px 20px;
-      display: none; justify-content: space-between; align-items: center;
-      z-index: 2000; font-family: 'Montserrat', sans-serif;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #008080;
+      color: #FFF;
+      padding: 12px 20px;
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2000;
+      font-family: 'Montserrat', sans-serif;
     }
-    .install-banner.show { display: flex; }
+    .install-banner.show {
+      display: flex;
+    }
     .install-banner button {
-      background: #FFF; color: #008080; border: none;
-      padding: 8px 20px; border-radius: 20px; font-size: 14px;
-      font-weight: 600; cursor: pointer;
+      background: #FFF;
+      color: #008080;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
     }
-    .install-banner .close { background: none; color: #FFF; font-size: 20px; padding: 0 8px; }
+    .install-banner .close {
+      background: none;
+      color: #FFF;
+      font-size: 20px;
+      padding: 0 8px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Лоадер -->
   <div id="loader" class="loader">
     <div class="spinner"></div>
     <p>📅 Загрузка приложения...</p>
   </div>
 
-  <!-- {{GAS_URL}} заменяется GitHub Actions -->
   <iframe id="app-frame" src="{{GAS_URL}}" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
 
-  <!-- Баннер установки PWA -->
   <div id="installBanner" class="install-banner">
     <span>📱 Установите приложение на домашний экран</span>
     <div>
@@ -70,82 +126,71 @@
 
   <script>
     // {{GAS_URL}} заменяется GitHub Actions
-    const GAS_URL = '{{GAS_URL}}';
-
-    // === Устанавливаем src IFRAME ===
+    var GAS_URL = '{{GAS_URL}}';
     document.getElementById('app-frame').src = GAS_URL;
 
-    // === Регистрация Service Worker ===
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(() => console.log('✅ Service Worker зарегистрирован'))
-        .catch((err) => console.warn('⚠️ Service Worker не зарегистрирован:', err));
+      navigator.serviceWorker.register('/calendar-frontend/sw.js')
+        .then(function() { console.log('✅ Service Worker зарегистрирован'); })
+        .catch(function(err) { console.warn('⚠️ Service Worker не зарегистрирован:', err); });
     }
 
-    // === Скрываем лоадер ===
-    const iframe = document.getElementById('app-frame');
-    const loader = document.getElementById('loader');
+    var iframe = document.getElementById('app-frame');
+    var loader = document.getElementById('loader');
 
-    iframe.addEventListener('load', () => {
-      setTimeout(() => {
+    iframe.addEventListener('load', function() {
+      setTimeout(function() {
         loader.classList.add('hidden');
-        setTimeout(() => {
-          loader.style.display = 'none';
-        }, 500);
+        setTimeout(function() { loader.style.display = 'none'; }, 500);
       }, 300);
     });
 
-    // === Обработка ошибок загрузки ===
-    iframe.addEventListener('error', () => {
+    iframe.addEventListener('error', function() {
       loader.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-          <h3 style="color: #C62828;">Не удалось загрузить приложение</h3>
-          <p style="color: #7B8D8E; margin-top: 8px;">
-            Проверьте подключение к интернету и попробуйте обновить страницу.
-          </p>
-          <button onclick="location.reload()" style="margin-top: 16px; padding: 10px 24px; background: #008080; color: #FFF; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;">
-            Обновить
-          </button>
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+          <h3 style="color:#C62828;">Не удалось загрузить приложение</h3>
+          <p style="color:#7B8D8E;margin-top:8px;">Проверьте подключение к интернету и попробуйте обновить страницу.</p>
+          <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#008080;color:#FFF;border:none;border-radius:12px;font-size:16px;cursor:pointer;">Обновить</button>
         </div>
       `;
     });
 
-    // === PWA: Установка на домашний экран ===
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
+    // PWA Установка
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
       deferredPrompt = e;
       document.getElementById('installBanner').classList.add('show');
     });
 
-    document.getElementById('installBtn').addEventListener('click', async () => {
+    document.getElementById('installBtn').addEventListener('click', function() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        const result = await deferredPrompt.userChoice;
-        console.log('✅ Установка:', result.outcome);
-        deferredPrompt = null;
-        document.getElementById('installBanner').classList.remove('show');
+        deferredPrompt.userChoice.then(function(result) {
+          console.log('✅ Установка:', result.outcome);
+          deferredPrompt = null;
+          document.getElementById('installBanner').classList.remove('show');
+        });
       }
     });
 
-    document.getElementById('closeBanner').addEventListener('click', () => {
+    document.getElementById('closeBanner').addEventListener('click', function() {
       document.getElementById('installBanner').classList.remove('show');
     });
 
-    window.addEventListener('appinstalled', () => {
+    window.addEventListener('appinstalled', function() {
       document.getElementById('installBanner').classList.remove('show');
       console.log('✅ Приложение установлено');
     });
 
-    // === Офлайн-баннер ===
-    window.addEventListener('online', () => {
+    // Офлайн-баннер
+    window.addEventListener('online', function() {
       console.log('🟢 Сеть восстановлена');
       iframe.contentWindow?.postMessage({ type: 'online' }, '*');
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener('offline', function() {
       console.log('🔴 Сеть отсутствует');
       iframe.contentWindow?.postMessage({ type: 'offline' }, '*');
     });
