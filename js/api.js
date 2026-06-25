@@ -1,4 +1,4 @@
-// ===== Запросы к GAS через google.script.run (без CORS) =====
+// ===== Запросы к GAS через google.script.run (БЕЗ CORS) =====
 
 const API = {
     /**
@@ -12,9 +12,17 @@ const API = {
                 return;
             }
             
+            console.log(`📤 Вызов ${functionName} с параметрами:`, params);
+            
             google.script.run
-                .withSuccessHandler(resolve)
-                .withFailureHandler(reject)
+                .withSuccessHandler((result) => {
+                    console.log(`✅ ${functionName} успешно:`, result);
+                    resolve(result);
+                })
+                .withFailureHandler((error) => {
+                    console.error(`❌ ${functionName} ошибка:`, error);
+                    reject(error);
+                })
                 [functionName](params);
         });
     },
