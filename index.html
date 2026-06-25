@@ -5,69 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Календарь мастера</title>
 
-  <!-- PWA Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Календарь мастера" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#008080" />
-  <meta name="background-color" content="#FFFDF9" />
-  <meta name="description" content="Приложение для записи на услуги (кератин, ботокс, холодное, полировка)" />
-
-  <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json" />
-
-  <!-- Favicon -->
   <link rel="icon" href="favicon.ico" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
 
-  <!-- Шрифты -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Стили -->
   <link rel="stylesheet" href="/styles.css" />
-
-  <style>
-    /* Дополнительные стили для обёртки (если не помещаются в styles.css) */
-    .install-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #008080;
-      color: #FFF;
-      padding: 12px 20px;
-      display: none;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 2000;
-      font-family: 'Montserrat', sans-serif;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-    }
-    .install-banner.show {
-      display: flex;
-    }
-    .install-banner button {
-      background: #FFF;
-      color: #008080;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .install-banner .close {
-      background: none;
-      color: #FFF;
-      font-size: 20px;
-      padding: 0 8px;
-    }
-  </style>
 </head>
 <body>
 
@@ -77,8 +22,8 @@
     <p>📅 Загрузка приложения...</p>
   </div>
 
-  <!-- IFRAME с GAS-приложением -->
-  <iframe id="app-frame" src="https://script.google.com/macros/s/ВАШ_GAS_ID/exec" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
+  <!-- {{GAS_URL}} заменяется GitHub Actions -->
+  <iframe id="app-frame" src="{{GAS_URL}}" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
 
   <!-- Баннер установки PWA -->
   <div id="installBanner" class="install-banner">
@@ -89,11 +34,9 @@
     </div>
   </div>
 
-  <!-- Service Worker и логика -->
   <script>
-    // === КОНФИГУРАЦИЯ ===
-    // ⚠️ ЗАМЕНИТЕ НА ВАШ GAS_URL
-    const GAS_URL = 'https://script.google.com/macros/s/ВАШ_GAS_ID/exec';
+    // {{GAS_URL}} заменяется GitHub Actions
+    const GAS_URL = '{{GAS_URL}}';
 
     // === Устанавливаем src IFRAME ===
     document.getElementById('app-frame').src = GAS_URL;
@@ -101,12 +44,8 @@
     // === Регистрация Service Worker ===
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker зарегистрирован:', registration);
-        })
-        .catch((error) => {
-          console.warn('⚠️ Service Worker не зарегистрирован:', error);
-        });
+        .then(() => console.log('✅ Service Worker зарегистрирован'))
+        .catch((err) => console.warn('⚠️ Service Worker не зарегистрирован:', err));
     }
 
     // === Скрываем лоадер ===
@@ -166,7 +105,7 @@
       console.log('✅ Приложение установлено');
     });
 
-    // === Офлайн-баннер (сообщение в IFRAME) ===
+    // === Офлайн-баннер ===
     window.addEventListener('online', () => {
       console.log('🟢 Сеть восстановлена');
       iframe.contentWindow?.postMessage({ type: 'online' }, '*');

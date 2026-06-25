@@ -1,6 +1,6 @@
 // ===== Конфигурация =====
 const CONFIG = {
-  // GAS_URL больше не используется для fetch, оставляем для совместимости
+  // {{GAS_URL}} заменяется GitHub Actions
   // GAS_URL: '{{GAS_URL}}',
   COLORS: {
     'Кератин': '#D4AF37',
