@@ -27,7 +27,9 @@ jobs:
 
           echo "🔑 GAS_URL: $GAS_URL"
 
+          # Заменяем во всех файлах
           sed -i "s|{{GAS_URL}}|$GAS_URL|g" index.html
+          sed -i "s|{{GAS_URL}}|$GAS_URL|g" sw.js
 
           echo "✅ GAS_URL injected"
 
@@ -40,4 +42,4 @@ jobs:
           force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy with GAS_URL'
+          commit_message: 'Deploy PWA with GAS_URL'

@@ -7,20 +7,30 @@
 
   <!-- PWA Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Календарь мастера" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#008080" />
+  <meta name="background-color" content="#FFFDF9" />
+  <meta name="description" content="Приложение для записи на услуги (кератин, ботокс, холодное, полировка)" />
+
+  <!-- PWA Manifest -->
   <link rel="manifest" href="/calendar-frontend/manifest.json" />
+
+  <!-- Favicon -->
   <link rel="icon" href="/calendar-frontend/favicon.ico" />
   <link rel="apple-touch-icon" href="/calendar-frontend/icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/calendar-frontend/icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="/calendar-frontend/icons/icon-512.png" />
 
   <style>
+    /* ===== СТИЛИ ДЛЯ ОБЁРТКИ ===== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    html,
-    body {
+    html, body {
       height: 100%;
       width: 100%;
       overflow: hidden;
@@ -30,7 +40,10 @@
       width: 100%;
       height: 100%;
       border: none;
+      display: block;
     }
+
+    /* ===== ЛОАДЕР ===== */
     .loader {
       position: fixed;
       top: 0;
@@ -43,9 +56,9 @@
       justify-content: center;
       background: #FFFDF9;
       z-index: 1000;
-      transition: opacity 0.5s ease;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Montserrat', 'Inter', sans-serif;
       color: #008080;
+      transition: opacity 0.5s ease;
     }
     .loader.hidden {
       opacity: 0;
@@ -62,15 +75,14 @@
     .loader p {
       margin-top: 20px;
       font-size: 16px;
+      font-weight: 500;
     }
     @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
+
+    /* ===== БАННЕР УСТАНОВКИ ===== */
     .install-banner {
       position: fixed;
       bottom: 0;
@@ -84,11 +96,16 @@
       align-items: center;
       z-index: 2000;
       font-family: 'Montserrat', sans-serif;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
     }
     .install-banner.show {
       display: flex;
     }
-    .install-banner button {
+    .install-banner .message {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .install-banner .btn-install {
       background: #FFF;
       color: #008080;
       border: none;
@@ -97,67 +114,91 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      margin-left: 12px;
     }
-    .install-banner .close {
+    .install-banner .btn-close {
       background: none;
+      border: none;
       color: #FFF;
       font-size: 20px;
-      padding: 0 8px;
       cursor: pointer;
+      padding: 0 8px;
     }
   </style>
 </head>
 <body>
 
+  <!-- Лоадер -->
   <div id="loader" class="loader">
     <div class="spinner"></div>
     <p>📅 Загрузка приложения...</p>
   </div>
 
+  <!-- IFRAME с GAS-приложением -->
   <iframe id="app-frame" src="{{GAS_URL}}" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
 
+  <!-- Баннер установки PWA -->
   <div id="installBanner" class="install-banner">
-    <span>📱 Установите приложение на домашний экран</span>
+    <span class="message">📱 Установите приложение на домашний экран</span>
     <div>
-      <button id="installBtn">Установить</button>
-      <button id="closeBanner" class="close">✕</button>
+      <button class="btn-install" id="installBtn">Установить</button>
+      <button class="btn-close" id="closeBanner">✕</button>
     </div>
   </div>
 
   <script>
+    // ============================================
+    //  КОНФИГУРАЦИЯ
+    // ============================================
     // {{GAS_URL}} заменяется GitHub Actions
     var GAS_URL = '{{GAS_URL}}';
+
+    // === Устанавливаем src IFRAME ===
     document.getElementById('app-frame').src = GAS_URL;
 
+    // === Регистрация Service Worker ===
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/calendar-frontend/sw.js')
-        .then(function() { console.log('✅ Service Worker зарегистрирован'); })
-        .catch(function(err) { console.warn('⚠️ Service Worker не зарегистрирован:', err); });
+        .then(function(registration) {
+          console.log('✅ Service Worker зарегистрирован:', registration);
+        })
+        .catch(function(error) {
+          console.warn('⚠️ Service Worker не зарегистрирован:', error);
+        });
     }
 
+    // === Скрываем лоадер ===
     var iframe = document.getElementById('app-frame');
     var loader = document.getElementById('loader');
 
     iframe.addEventListener('load', function() {
       setTimeout(function() {
         loader.classList.add('hidden');
-        setTimeout(function() { loader.style.display = 'none'; }, 500);
+        setTimeout(function() {
+          loader.style.display = 'none';
+        }, 500);
       }, 300);
     });
 
+    // === Обработка ошибок загрузки ===
     iframe.addEventListener('error', function() {
       loader.innerHTML = `
-        <div style="text-align:center;padding:20px;">
-          <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
-          <h3 style="color:#C62828;">Не удалось загрузить приложение</h3>
-          <p style="color:#7B8D8E;margin-top:8px;">Проверьте подключение к интернету и попробуйте обновить страницу.</p>
-          <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#008080;color:#FFF;border:none;border-radius:12px;font-size:16px;cursor:pointer;">Обновить</button>
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+          <h3 style="color: #C62828;">Не удалось загрузить приложение</h3>
+          <p style="color: #7B8D8E; margin-top: 8px;">
+            Проверьте подключение к интернету и попробуйте обновить страницу.
+          </p>
+          <button onclick="location.reload()" style="margin-top: 16px; padding: 10px 24px; background: #008080; color: #FFF; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;">
+            Обновить
+          </button>
         </div>
       `;
     });
 
-    // PWA Установка
+    // === PWA: Установка на домашний экран ===
     var deferredPrompt;
+
     window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
       deferredPrompt = e;
@@ -184,7 +225,7 @@
       console.log('✅ Приложение установлено');
     });
 
-    // Офлайн-баннер
+    // === Офлайн-баннер (сообщение в IFRAME) ===
     window.addEventListener('online', function() {
       console.log('🟢 Сеть восстановлена');
       iframe.contentWindow?.postMessage({ type: 'online' }, '*');
@@ -194,6 +235,23 @@
       console.log('🔴 Сеть отсутствует');
       iframe.contentWindow?.postMessage({ type: 'offline' }, '*');
     });
+
+    // === Обработка уведомлений из GAS ===
+    window.addEventListener('message', function(event) {
+      // Проверяем, что сообщение от нашего GAS-приложения
+      if (event.data && event.data.type === 'notification') {
+        // Показываем системное уведомление через Service Worker
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'showNotification',
+            title: 'Календарь мастера',
+            body: event.data.message,
+            timestamp: event.data.timestamp || Date.now()
+          });
+        }
+      }
+    });
   </script>
+
 </body>
 </html>
