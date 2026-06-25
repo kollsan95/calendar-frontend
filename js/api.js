@@ -9,7 +9,10 @@ const API = {
             mode: 'cors',
             credentials: 'omit'
         });
-        if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
+        }
         return await response.json();
     },
 
@@ -31,35 +34,52 @@ const API = {
         return await response.json();
     },
 
-    async login(username, password) { return this.request({ action: 'login', username, password }); },
-    async validate(token) { return this.request({ action: 'validate', token }); },
+    async login(username, password) {
+        return this.request({ action: 'login', username, password });
+    },
+
+    async validate(token) {
+        return this.request({ action: 'validate', token });
+    },
 
     async getRecords(year, month, forceRefresh = false) {
         if (!forceRefresh) {
             const cached = Cache.get(year, month);
-            if (cached) { console.log(`📦 Кеш: ${year}-${month}`); return cached; }
+            if (cached) {
+                console.log(`📦 Кеш: ${year}-${month}`);
+                return cached;
+            }
         }
         console.log(`🌐 Сервер: ${year}-${month}`);
         const data = await this.request({ action: 'getData', year, month });
-        if (data.status === 'ok') { Cache.set(year, month, data.data || {}); return data.data || {}; }
+        if (data.status === 'ok') {
+            Cache.set(year, month, data.data || {});
+            return data.data || {};
+        }
         throw new Error(data.message || 'Ошибка получения данных');
     },
 
     async saveRecord(record) {
         const data = await this.postRequest({ action: 'saveRecord', ...record });
-        if (data.status !== 'ok') throw new Error(data.message || 'Ошибка сохранения');
+        if (data.status !== 'ok') {
+            throw new Error(data.message || 'Ошибка сохранения');
+        }
         return data;
     },
 
     async deleteRecord(recordId) {
         const data = await this.postRequest({ action: 'deleteRecord', recordId });
-        if (data.status !== 'ok') throw new Error(data.message || 'Ошибка удаления');
+        if (data.status !== 'ok') {
+            throw new Error(data.message || 'Ошибка удаления');
+        }
         return data;
     },
 
     async getUsers() {
         const data = await this.request({ action: 'getUsers' });
-        if (data.status === 'ok') return data.users || [];
+        if (data.status === 'ok') {
+            return data.users || [];
+        }
         throw new Error(data.message || 'Ошибка получения пользователей');
     }
 };
