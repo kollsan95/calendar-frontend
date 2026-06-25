@@ -7,6 +7,7 @@
         calendarContainer: document.getElementById('calendarContainer'),
         detailContainer: document.getElementById('detailContainer'),
         appHeader: document.getElementById('appHeader'),
+        bottomPanel: document.getElementById('bottomPanel'),
         loginForm: document.getElementById('loginForm'),
         usernameInput: document.getElementById('username'),
         passwordInput: document.getElementById('password'),
@@ -41,6 +42,7 @@
         elements.calendarContainer.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;"><div class="spinner"></div><p style="margin-top:12px;color:#008080;font-size:14px;font-weight:500;">Загрузка...</p></div>`;
         if (elements.detailContainer) elements.detailContainer.style.display = 'none';
         elements.appHeader.style.display = 'none';
+        if (elements.bottomPanel) elements.bottomPanel.style.display = 'none';
         elements.loaderEl.style.display = 'none';
     }
 
@@ -49,6 +51,7 @@
         elements.calendarContainer.style.display = 'none';
         if (elements.detailContainer) elements.detailContainer.style.display = 'none';
         elements.appHeader.style.display = 'none';
+        if (elements.bottomPanel) elements.bottomPanel.style.display = 'none';
         elements.loaderEl.style.display = 'none';
     }
 
@@ -57,6 +60,7 @@
         elements.calendarContainer.style.display = 'block';
         if (elements.detailContainer) elements.detailContainer.style.display = 'none';
         elements.appHeader.style.display = 'flex';
+        if (elements.bottomPanel) elements.bottomPanel.style.display = 'flex';
         elements.loaderEl.style.display = 'none';
         if (typeof Filters !== 'undefined') Filters.init();
         if (typeof Windows !== 'undefined') Windows.init();
@@ -157,6 +161,7 @@
         }
     });
 
+    // Кнопка выхода теперь в нижней панели
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {

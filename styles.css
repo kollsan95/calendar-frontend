@@ -168,3 +168,21 @@ h1 {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+button, .filter-chip, #windowsBtn, #logoutBtn, select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.filter-chip, #windowsBtn, #logoutBtn {
+    transition: all 0.2s ease;
+}
+
+.filter-chip:hover, #windowsBtn:hover, #logoutBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15) !important;
+}
+
+.filter-chip:active, #windowsBtn:active, #logoutBtn:active {
+    transform: translateY(0px);
+}

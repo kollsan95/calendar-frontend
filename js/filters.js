@@ -3,13 +3,14 @@ const Filters = {
     init() {
         const chips = document.querySelectorAll('.filter-chip');
         chips.forEach(chip => {
+            chip.style.cursor = 'pointer';
+            chip.style.userSelect = 'none';
             chip.addEventListener('click', () => {
                 const type = chip.dataset.type;
                 this.setFilter(type);
             });
         });
 
-        // Показываем фильтр пользователя только для админа
         const userFilterContainer = document.getElementById('userFilterContainer');
         if (userFilterContainer) {
             if (Auth.isAdmin()) {
@@ -24,20 +25,20 @@ const Filters = {
     },
 
     setFilter(type, user = null) {
-        // Обновляем активный чип
         document.querySelectorAll('.filter-chip').forEach(chip => {
             if (chip.dataset.type === type) {
                 chip.style.background = '#008080';
                 chip.style.color = '#FFF';
                 chip.style.borderColor = '#008080';
+                chip.style.boxShadow = '0 4px 12px rgba(0,128,128,0.3)';
             } else {
                 chip.style.background = '#FFF';
                 chip.style.color = '#37474F';
                 chip.style.borderColor = '#E0F2F1';
+                chip.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
             }
         });
 
-        // Применяем фильтр к календарю
         if (typeof Calendar !== 'undefined') {
             Calendar.setFilter(type, user || null);
         }
@@ -55,6 +56,7 @@ const Filters = {
                 option.textContent = user.username;
                 select.appendChild(option);
             });
+            select.style.cursor = 'pointer';
             select.addEventListener('change', () => {
                 const user = select.value === 'all' ? null : select.value;
                 this.setFilter('all', user);
@@ -67,7 +69,7 @@ const Filters = {
     updateUI() {
         const container = document.getElementById('filtersContainer');
         if (container) container.style.display = 'block';
-        const windowsBtn = document.getElementById('windowsBtn');
-        if (windowsBtn) windowsBtn.style.display = 'block';
+        const bottomPanel = document.getElementById('bottomPanel');
+        if (bottomPanel) bottomPanel.style.display = 'flex';
     }
 };

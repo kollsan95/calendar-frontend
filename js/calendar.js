@@ -32,7 +32,6 @@ const Calendar = {
         const container = this.container;
         container.innerHTML = '';
 
-        // Заголовок с навигацией
         const header = document.createElement('div');
         header.style.cssText = `display:flex;justify-content:space-between;align-items:center;padding:6px 0 10px 0;margin-bottom:6px;border-bottom:1px solid #E0F2F1;`;
         header.innerHTML = `
@@ -42,7 +41,6 @@ const Calendar = {
         `;
         container.appendChild(header);
 
-        // Сетка
         const grid = document.createElement('div');
         grid.style.cssText = `display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:100%;margin:0 auto;`;
 
@@ -83,6 +81,15 @@ const Calendar = {
             canvas.style.cssText = `width:100%;height:100%;cursor:pointer;border-radius:50%;transition:transform 0.2s,box-shadow 0.2s;`;
 
             CanvasRenderer.drawTile(canvas, day, this.recordsData, this.year, this.month, false, this.filter, this.userFilter, this.isFreeMode);
+
+            // Добавляем число в центр
+            const ctx = canvas.getContext('2d');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#37474F';
+            const fontSize = canvas.width * 0.32;
+            ctx.font = `600 ${fontSize}px Montserrat, sans-serif`;
+            ctx.fillText(day, canvas.width / 2, canvas.height / 2 + 2);
 
             canvas.addEventListener('click', () => { if (this.onDayClick) this.onDayClick(day); });
             canvas.addEventListener('mouseenter', () => { canvas.style.transform = 'scale(1.05)'; canvas.style.boxShadow = '0 4px 12px rgba(0,128,128,0.2)'; });

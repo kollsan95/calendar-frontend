@@ -6,7 +6,8 @@ const API = {
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Accept': 'application/json' },
-            mode: 'cors'
+            mode: 'cors',
+            credentials: 'omit'
         });
         if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
         return await response.json();
@@ -20,9 +21,13 @@ const API = {
                 'Accept': 'application/json'
             },
             mode: 'cors',
+            credentials: 'omit',
             body: JSON.stringify(data)
         });
-        if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
+        }
         return await response.json();
     },
 

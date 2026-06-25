@@ -9,6 +9,7 @@ const Detail = {
     filter: 'all',
     userFilter: null,
     isFreeMode: false,
+    carouselScrollPos: 0,
 
     init(container) { this.container = container; },
 
@@ -17,6 +18,7 @@ const Detail = {
         this.recordsData = recordsData || {};
         this.isActive = true;
         this.selectedStart = null;
+        this.carouselScrollPos = 0;
         this.render();
     },
 
@@ -27,8 +29,8 @@ const Detail = {
         if (calendarContainer) calendarContainer.style.display = 'block';
         const filters = document.getElementById('filtersContainer');
         if (filters) filters.style.display = 'block';
-        const windowsBtn = document.getElementById('windowsBtn');
-        if (windowsBtn) windowsBtn.style.display = 'block';
+        const bottomPanel = document.getElementById('bottomPanel');
+        if (bottomPanel) bottomPanel.style.display = 'flex';
     },
 
     render() {
@@ -37,32 +39,55 @@ const Detail = {
         container.style.display = 'block';
         container.innerHTML = '';
 
-        // Фильтры над каруселью
-        const filterBar = document.createElement('div');
-        filterBar.style.cssText = `display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;justify-content:center;`;
-        filterBar.innerHTML = `
-            <button class="detail-filter-chip" data-type="all" style="padding:3px 12px;border-radius:14px;border:1px solid #008080;background:#008080;color:#FFF;font-size:11px;cursor:pointer;">Все</button>
-            <button class="detail-filter-chip" data-type="free" style="padding:3px 12px;border-radius:14px;border:1px solid #E0F2F1;background:#FFF;color:#37474F;font-size:11px;cursor:pointer;">Свободные</button>
-            <button class="detail-filter-chip" data-type="Кератин" style="padding:3px 12px;border-radius:14px;border:1px solid #E0F2F1;background:#FFF;color:#37474F;font-size:11px;cursor:pointer;">Кератин</button>
-            <button class="detail-filter-chip" data-type="Ботокс" style="padding:3px 12px;border-radius:14px;border:1px solid #E0F2F1;background:#FFF;color:#37474F;font-size:11px;cursor:pointer;">Ботокс</button>
-            <button class="detail-filter-chip" data-type="Холодное" style="padding:3px 12px;border-radius:14px;border:1px solid #E0F2F1;background:#FFF;color:#37474F;font-size:11px;cursor:pointer;">Холодное</button>
-            <button class="detail-filter-chip" data-type="Полировка" style="padding:3px 12px;border-radius:14px;border:1px solid #E0F2F1;background:#FFF;color:#37474F;font-size:11px;cursor:pointer;">Полировка</button>
-        `;
-        container.appendChild(filterBar);
+        // Кнопка "Назад" (овал) + фильтры
+        const topBar = document.createElement('div');
+        topBar.style.cssText = `display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;`;
+        
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '← Назад';
+        backBtn.style.cssText = `padding:6px 20px;border-radius:30px;border:1px solid #008080;background:transparent;color:#008080;font-size:14px;font-weight:500;cursor:pointer;`;
+        backBtn.addEventListener('click', () => this.hide());
+        topBar.appendChild(backBtn);
 
-        // Фильтр пользователя (только для админа)
+        // Фильтры (чипсы) — справа
+        const filterWrapper = document.createElement('div');
+        filterWrapper.style.cssText = `display:flex;flex-wrap:wrap;gap:4px;`;
+        const filters = ['Все', 'Свободные', 'Кератин', 'Ботокс', 'Холодное', 'Полировка'];
+        filters.forEach(label => {
+            const type = label === 'Все' ? 'all' : label === 'Свободные' ? 'free' : label;
+            const chip = document.createElement('button');
+            chip.textContent = label;
+            chip.dataset.type = type;
+            const isActive = this.filter === type;
+            chip.style.cssText = `
+                padding:4px 14px;border-radius:16px;border:1px solid ${isActive ? '#008080' : '#E0F2F1'};
+                background:${isActive ? '#008080' : '#FFF'};color:${isActive ? '#FFF' : '#37474F'};
+                font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            `;
+            chip.addEventListener('click', () => {
+                this.filter = type;
+                this.isFreeMode = (type === 'free');
+                this.render();
+            });
+            filterWrapper.appendChild(chip);
+        });
+        topBar.appendChild(filterWrapper);
+        container.appendChild(topBar);
+
+        // Фильтр пользователя (только для админа) — справа под кругом
         if (Auth.isAdmin()) {
             const userFilterDiv = document.createElement('div');
-            userFilterDiv.style.cssText = `text-align:center;margin-bottom:8px;`;
+            userFilterDiv.style.cssText = `display:flex;justify-content:flex-end;margin-bottom:8px;`;
             const select = document.createElement('select');
-            select.style.cssText = `padding:3px 12px;border-radius:14px;border:1px solid #E0F2F1;font-size:11px;background:#FFF;`;
+            select.style.cssText = `padding:4px 14px;border-radius:16px;border:1px solid #E0F2F1;font-size:12px;background:#FFF;font-family:'Montserrat',sans-serif;box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
             select.innerHTML = '<option value="all">Все пользователи</option>';
-            // Загружаем пользователей
             API.getUsers().then(users => {
                 users.forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u.username;
                     opt.textContent = u.username;
+                    if (this.userFilter === u.username) opt.selected = true;
                     select.appendChild(opt);
                 });
             });
@@ -74,16 +99,6 @@ const Detail = {
             container.appendChild(userFilterDiv);
         }
 
-        // Кнопка "Назад" (обёрнута в овал)
-        const backWrapper = document.createElement('div');
-        backWrapper.style.cssText = `display:flex;justify-content:flex-start;margin-bottom:8px;`;
-        const backBtn = document.createElement('button');
-        backBtn.textContent = '← Назад';
-        backBtn.style.cssText = `padding:6px 20px;border-radius:30px;border:1px solid #008080;background:transparent;color:#008080;font-size:14px;font-weight:500;cursor:pointer;`;
-        backBtn.addEventListener('click', () => this.hide());
-        backWrapper.appendChild(backBtn);
-        container.appendChild(backWrapper);
-
         // Заголовок с месяцем
         const monthTitle = document.createElement('div');
         monthTitle.style.cssText = `text-align:center;font-size:16px;font-weight:600;color:#008080;margin-bottom:8px;`;
@@ -92,112 +107,122 @@ const Detail = {
 
         // Карусель
         const carouselWrapper = document.createElement('div');
-        carouselWrapper.style.cssText = `display:flex;align-items:center;gap:8px;margin-bottom:12px;`;
+        carouselWrapper.style.cssText = `display:flex;align-items:center;gap:4px;margin-bottom:12px;position:relative;`;
 
         const prevBtn = document.createElement('button');
         prevBtn.textContent = '‹';
-        prevBtn.style.cssText = `background:none;border:none;font-size:24px;color:#008080;cursor:pointer;padding:0 8px;`;
+        prevBtn.style.cssText = `background:none;border:none;font-size:28px;color:#008080;cursor:pointer;padding:0 8px;z-index:10;`;
         carouselWrapper.appendChild(prevBtn);
 
         const carouselContainer = document.createElement('div');
         carouselContainer.style.cssText = `flex:1;overflow:hidden;position:relative;`;
         const carouselTrack = document.createElement('div');
-        carouselTrack.style.cssText = `display:flex;gap:8px;transition:transform 0.3s ease;padding:4px 0;`;
+        carouselTrack.style.cssText = `display:flex;gap:8px;transition:transform 0.4s ease;padding:4px 0;`;
         carouselTrack.id = 'carouselTrack';
         carouselContainer.appendChild(carouselTrack);
-
-        // Заполняем карусель
-        const daysInMonth = new Date(this.year, this.month, 0).getDate();
-        const tiles = [];
-        for (let d = 1; d <= daysInMonth; d++) {
-            const tile = document.createElement('div');
-            tile.style.cssText = `flex:0 0 auto;width:60px;height:60px;border-radius:50%;overflow:hidden;cursor:pointer;transition:all 0.3s;position:relative;`;
-            if (d === this.day) {
-                tile.style.boxShadow = '0 0 0 3px #008080, 0 4px 12px rgba(0,128,128,0.3)';
-                tile.style.transform = 'scale(1.05)';
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = 120;
-            canvas.height = 120;
-            canvas.style.cssText = `width:100%;height:100%;`;
-            CanvasRenderer.drawTile(canvas, d, this.recordsData, this.year, this.month, true, this.filter, this.userFilter, this.isFreeMode);
-            tile.appendChild(canvas);
-
-            // Подпись дня недели под кружком
-            const dateObj = new Date(this.year, this.month - 1, d);
-            const dayLabel = document.createElement('div');
-            dayLabel.style.cssText = `text-align:center;font-size:9px;color:#7B8D8E;margin-top:2px;`;
-            dayLabel.textContent = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][dateObj.getDay()];
-            tile.appendChild(dayLabel);
-
-            tile.addEventListener('click', () => {
-                this.day = d;
-                this.render();
-            });
-            tiles.push(tile);
-            carouselTrack.appendChild(tile);
-        }
         carouselWrapper.appendChild(carouselContainer);
 
         const nextBtn = document.createElement('button');
         nextBtn.textContent = '›';
-        nextBtn.style.cssText = `background:none;border:none;font-size:24px;color:#008080;cursor:pointer;padding:0 8px;`;
+        nextBtn.style.cssText = `background:none;border:none;font-size:28px;color:#008080;cursor:pointer;padding:0 8px;z-index:10;`;
         carouselWrapper.appendChild(nextBtn);
 
         container.appendChild(carouselWrapper);
 
-        // Прокрутка карусели к выбранному дню
-        setTimeout(() => {
+        // Заполняем карусель
+        this._populateCarousel(carouselTrack);
+
+        // Прокрутка к выбранному дню (по центру)
+        setTimeout(() => this._scrollToDay(carouselTrack), 100);
+
+        // Навигация (исправлено направление)
+        prevBtn.addEventListener('click', () => {
             const track = document.getElementById('carouselTrack');
             if (!track) return;
-            const items = track.children;
-            let scrollPos = 0;
-            for (let i = 0; i < items.length; i++) {
-                const child = items[i];
-                const dayNum = parseInt(child.textContent);
-                if (dayNum === this.day) {
-                    const rect = track.getBoundingClientRect();
-                    const childRect = child.getBoundingClientRect();
-                    scrollPos = childRect.left - rect.left - (rect.width / 2) + (childRect.width / 2);
-                    break;
-                }
-            }
-            track.style.transform = `translateX(${-scrollPos}px)`;
-        }, 50);
-
-        // Навигация по карусели
-        let currentScroll = 0;
-        const scrollStep = 120;
-        prevBtn.addEventListener('click', () => {
-            currentScroll -= scrollStep;
-            const track = document.getElementById('carouselTrack');
-            if (track) track.style.transform = `translateX(${currentScroll}px)`;
+            const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
+            this.carouselScrollPos += itemWidth;
+            track.style.transform = `translateX(${this.carouselScrollPos}px)`;
         });
         nextBtn.addEventListener('click', () => {
-            currentScroll += scrollStep;
             const track = document.getElementById('carouselTrack');
-            if (track) track.style.transform = `translateX(${currentScroll}px)`;
+            if (!track) return;
+            const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
+            this.carouselScrollPos -= itemWidth;
+            track.style.transform = `translateX(${this.carouselScrollPos}px)`;
         });
+
+        // Свайп (мышь и touch)
+        let isDraggingCarousel = false;
+        let startX = 0;
+        let currentX = 0;
+        let startScrollPos = 0;
+
+        const startCarouselDrag = (x) => {
+            isDraggingCarousel = true;
+            startX = x;
+            startScrollPos = this.carouselScrollPos;
+            carouselTrack.style.transition = 'none';
+        };
+        const moveCarouselDrag = (x) => {
+            if (!isDraggingCarousel) return;
+            const diff = x - startX;
+            const track = document.getElementById('carouselTrack');
+            if (!track) return;
+            const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
+            this.carouselScrollPos = startScrollPos + diff;
+            track.style.transform = `translateX(${this.carouselScrollPos}px)`;
+        };
+        const endCarouselDrag = () => {
+            if (!isDraggingCarousel) return;
+            isDraggingCarousel = false;
+            const track = document.getElementById('carouselTrack');
+            if (!track) return;
+            track.style.transition = 'transform 0.4s ease';
+            const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
+            // Привязка к ближайшему элементу
+            const offset = Math.round(this.carouselScrollPos / itemWidth) * itemWidth;
+            this.carouselScrollPos = offset;
+            track.style.transform = `translateX(${offset}px)`;
+        };
+
+        carouselTrack.addEventListener('mousedown', (e) => startCarouselDrag(e.clientX));
+        document.addEventListener('mousemove', (e) => moveCarouselDrag(e.clientX));
+        document.addEventListener('mouseup', endCarouselDrag);
+
+        carouselTrack.addEventListener('touchstart', (e) => startCarouselDrag(e.touches[0].clientX), { passive: true });
+        carouselTrack.addEventListener('touchmove', (e) => moveCarouselDrag(e.touches[0].clientX), { passive: true });
+        carouselTrack.addEventListener('touchend', endCarouselDrag, { passive: true });
+
+        // Колесико мыши
+        carouselContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -1 : 1;
+            const track = document.getElementById('carouselTrack');
+            if (!track) return;
+            const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
+            this.carouselScrollPos += delta * itemWidth;
+            track.style.transform = `translateX(${this.carouselScrollPos}px)`;
+        }, { passive: false });
 
         // Увеличенная плитка
         const tileContainer = document.createElement('div');
         tileContainer.style.cssText = `display:flex;justify-content:center;padding:8px 0;`;
         const canvas = document.createElement('canvas');
-        canvas.width = 400;
-        canvas.height = 400;
-        canvas.style.cssText = `width:400px;height:400px;max-width:80vw;max-height:80vw;cursor:pointer;`;
+        canvas.width = 440;
+        canvas.height = 440;
+        canvas.style.cssText = `width:440px;height:440px;max-width:85vw;max-height:85vw;cursor:pointer;`;
         canvas.id = 'detailCanvas';
         tileContainer.appendChild(canvas);
         container.appendChild(tileContainer);
 
-        // Отрисовка увеличенной плитки
+        // Отрисовка увеличенной плитки с выделением
         const drawDetailTile = (highlightHours = []) => {
             const ctx = canvas.getContext('2d');
             const size = canvas.width;
             const centerX = size / 2;
             const centerY = size / 2;
-            const radius = size / 2 - 10;
-            const innerRadius = radius * 0.2;
+            const radius = size / 2 - 14;
+            const innerRadius = radius * 0.4;
 
             ctx.clearRect(0, 0, size, size);
             ctx.beginPath();
@@ -278,27 +303,27 @@ const Detail = {
                     ctx.stroke();
                 }
 
-                // Подписи часов снаружи (горизонтально)
-                const labelRadius = radius + 16;
+                // Подписи часов (горизонтально, увеличенный радиус)
+                const labelRadius = radius + 22;
                 const lx = centerX + labelRadius * Math.cos(angleStart + hourWidth / 2);
                 const ly = centerY + labelRadius * Math.sin(angleStart + hourWidth / 2);
                 ctx.save();
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#7B8D8E';
-                ctx.font = '10px Montserrat, sans-serif';
+                ctx.font = '11px Montserrat, sans-serif';
                 ctx.fillText(String(hour).padStart(2, '0'), lx, ly);
                 ctx.restore();
             }
 
-            // В центре не выводим дату в детальном режиме
+            // Центр прозрачный
         };
 
         drawDetailTile();
 
-        // Интерактивность: выделение секторов
-        let isDragging = false;
-        let startHour = null;
+        // Интерактивность: выделение секторов с цветом
+        let isDraggingDetail = false;
+        let startHourDetail = null;
         let selectedHours = [];
 
         const getHourFromEvent = (e) => {
@@ -310,9 +335,9 @@ const Detail = {
             const dx = x - cx;
             const dy = y - cy;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            const radiusPx = canvas.width / 2 - 10;
-            const innerRadiusPx = radiusPx * 0.2;
-            if (dist < innerRadiusPx || dist > radiusPx) return null; // Вне активной области
+            const radiusPx = canvas.width / 2 - 14;
+            const innerRadiusPx = radiusPx * 0.4;
+            if (dist < innerRadiusPx || dist > radiusPx) return null;
             const angle = Math.atan2(dy, dx);
             const hourWidth = (Math.PI * 2) / CONFIG.WORKING_HOURS;
             const startAngle = Math.PI / 2;
@@ -333,35 +358,33 @@ const Detail = {
                 if (hour >= record.startHour && hour < record.endHour) { isBooked = true; break; }
             }
             if (isBooked) return;
-            isDragging = true;
-            startHour = hour;
+            isDraggingDetail = true;
+            startHourDetail = hour;
             selectedHours = [hour];
             drawDetailTile(selectedHours);
         };
 
         const moveSelection = (e) => {
-            if (!isDragging) return;
+            if (!isDraggingDetail) return;
             e.preventDefault();
             const hour = getHourFromEvent(e);
             if (hour === null) {
-                // Если курсор вышел за пределы круга — сбрасываем выделение
-                isDragging = false;
+                isDraggingDetail = false;
                 selectedHours = [];
                 drawDetailTile([]);
                 return;
             }
-            // Определяем диапазон от startHour до hour по кратчайшей дуге
-            const diff = hour - startHour;
+            const diff = hour - startHourDetail;
             let range = [];
             if (Math.abs(diff) <= CONFIG.WORKING_HOURS / 2) {
-                if (diff >= 0) { for (let h = startHour; h <= hour; h++) range.push(h); }
-                else { for (let h = startHour; h >= hour; h--) range.push(h); }
+                if (diff >= 0) { for (let h = startHourDetail; h <= hour; h++) range.push(h); }
+                else { for (let h = startHourDetail; h >= hour; h--) range.push(h); }
             } else {
                 if (diff > 0) {
-                    for (let h = startHour; h >= 9; h--) range.push(h);
+                    for (let h = startHourDetail; h >= 9; h--) range.push(h);
                     for (let h = 20; h >= hour; h--) range.push(h);
                 } else {
-                    for (let h = startHour; h <= 20; h++) range.push(h);
+                    for (let h = startHourDetail; h <= 20; h++) range.push(h);
                     for (let h = 9; h <= hour; h++) range.push(h);
                 }
             }
@@ -370,8 +393,8 @@ const Detail = {
         };
 
         const endSelection = (e) => {
-            if (!isDragging) return;
-            isDragging = false;
+            if (!isDraggingDetail) return;
+            isDraggingDetail = false;
             if (selectedHours.length >= 2) {
                 const start = Math.min(...selectedHours);
                 const end = Math.max(...selectedHours) + 1;
@@ -386,7 +409,7 @@ const Detail = {
         canvas.addEventListener('mousedown', startSelection);
         canvas.addEventListener('mousemove', moveSelection);
         canvas.addEventListener('mouseup', endSelection);
-        canvas.addEventListener('mouseleave', (e) => { if (isDragging) { isDragging = false; selectedHours = []; drawDetailTile([]); } });
+        canvas.addEventListener('mouseleave', (e) => { if (isDraggingDetail) { isDraggingDetail = false; selectedHours = []; drawDetailTile([]); } });
 
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const touch = e.touches[0]; startSelection({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} }); });
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); const touch = e.touches[0]; moveSelection({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} }); });
@@ -423,31 +446,69 @@ const Detail = {
             container.appendChild(list);
         }
 
-        // Скрываем календарь и фильтры
+        // Скрываем календарь и нижнюю панель
         const calendarContainer = document.getElementById('calendarContainer');
         if (calendarContainer) calendarContainer.style.display = 'none';
         const filters = document.getElementById('filtersContainer');
         if (filters) filters.style.display = 'none';
-        const windowsBtn = document.getElementById('windowsBtn');
-        if (windowsBtn) windowsBtn.style.display = 'none';
+        const bottomPanel = document.getElementById('bottomPanel');
+        if (bottomPanel) bottomPanel.style.display = 'none';
+    },
 
-        // Обработчики фильтров в детальном режиме
-        document.querySelectorAll('.detail-filter-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                const type = chip.dataset.type;
-                this.filter = type;
-                this.isFreeMode = (type === 'free');
-                // Обновляем активный чип
-                document.querySelectorAll('.detail-filter-chip').forEach(c => {
-                    c.style.background = '#FFF';
-                    c.style.color = '#37474F';
-                    c.style.borderColor = '#E0F2F1';
-                });
-                chip.style.background = '#008080';
-                chip.style.color = '#FFF';
-                chip.style.borderColor = '#008080';
+    _populateCarousel(track) {
+        const daysInMonth = new Date(this.year, this.month, 0).getDate();
+        const daysOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        track.innerHTML = '';
+
+        // Добавляем загрузку для предыдущего месяца (пока заглушка)
+        // Здесь можно будет реализовать подгрузку соседних месяцев
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const tileWrapper = document.createElement('div');
+            tileWrapper.style.cssText = `display:flex;flex-direction:column;align-items:center;flex:0 0 auto;width:60px;`;
+
+            const tile = document.createElement('div');
+            tile.style.cssText = `width:52px;height:52px;border-radius:50%;overflow:hidden;cursor:pointer;transition:all 0.3s;`;
+            if (d === this.day) {
+                tile.style.boxShadow = '0 0 0 3px #008080, 0 4px 12px rgba(0,128,128,0.3)';
+                tile.style.transform = 'scale(1.05)';
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = 120;
+            canvas.height = 120;
+            canvas.style.cssText = `width:100%;height:100%;`;
+            CanvasRenderer.drawTile(canvas, d, this.recordsData, this.year, this.month, true, this.filter, this.userFilter, this.isFreeMode);
+            tile.appendChild(canvas);
+
+            // Подпись дня недели
+            const dateObj = new Date(this.year, this.month - 1, d);
+            const dayLabel = document.createElement('div');
+            dayLabel.style.cssText = `text-align:center;font-size:9px;color:#7B8D8E;margin-top:2px;`;
+            dayLabel.textContent = daysOfWeek[dateObj.getDay()];
+            tileWrapper.appendChild(tile);
+            tileWrapper.appendChild(dayLabel);
+
+            tile.addEventListener('click', () => {
+                this.day = d;
                 this.render();
             });
-        });
+            track.appendChild(tileWrapper);
+        }
+    },
+
+    _scrollToDay(track) {
+        if (!track) return;
+        const items = track.children;
+        let targetIndex = 0;
+        for (let i = 0; i < items.length; i++) {
+            const child = items[i];
+            const dayNum = parseInt(child.querySelector('div')?.textContent || '0');
+            if (dayNum === this.day) { targetIndex = i; break; }
+        }
+        const trackWidth = track.parentElement?.offsetWidth || 300;
+        const itemWidth = 60 + 8; // 60px + gap
+        const offset = targetIndex * itemWidth - trackWidth / 2 + itemWidth / 2;
+        this.carouselScrollPos = -offset;
+        track.style.transform = `translateX(${this.carouselScrollPos}px)`;
     }
 };

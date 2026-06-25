@@ -18,17 +18,14 @@ const Windows = {
             const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const records = data[dateKey] || [];
 
-            // Формируем строку: 9:00, 12:00, 15:00, 18:00(19:00)
             const times = [9, 12, 15, 18];
             const timeStr = times.map(t => {
-                // Проверяем, есть ли запись, пересекающаяся с [t-1, t+1]
                 let isBooked = false;
                 for (const record of records) {
                     if (t >= record.startHour && t < record.endHour) {
                         isBooked = true;
                         break;
                     }
-                    // Проверяем пересечение [t-1, t+1] с началом записи
                     if (record.startHour >= t - 1 && record.startHour <= t + 1) {
                         isBooked = true;
                         break;
@@ -52,7 +49,10 @@ const Windows = {
 
     init() {
         const btn = document.getElementById('windowsBtn');
-        if (btn) btn.addEventListener('click', () => this.show());
+        if (btn) {
+            btn.style.cursor = 'pointer';
+            btn.addEventListener('click', () => this.show());
+        }
 
         const closeBtn = document.getElementById('windowsCloseBtn');
         if (closeBtn) closeBtn.addEventListener('click', () => this.close());

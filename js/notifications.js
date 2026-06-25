@@ -7,7 +7,6 @@ const Notifications = {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify([]));
         }
         this.updateBadge();
-        // Очистка старых уведомлений (раз в день)
         this.cleanOld();
     },
 
@@ -87,36 +86,40 @@ const Notifications = {
     },
 
     showList() {
-        // Показываем приветственное сообщение при первом открытии списка
+        // Приветственное сообщение (красивое оформление)
         if (!localStorage.getItem('notif_intro_shown')) {
-            alert('🔔 Уведомления хранятся локально и автоматически удаляются через 90 дней.');
+            alert(
+                '🔔 Уведомления\n\n' +
+                '• Вы получаете уведомления, когда администратор создаёт для вас запись.\n' +
+                '• Уведомления хранятся локально на вашем устройстве.\n' +
+                '• Они автоматически удаляются через 90 дней.\n' +
+                '• Непрочитанные уведомления отмечены цветным кружочком.\n\n' +
+                'Уведомления приходят только когда вас назначили на запись.'
+            );
             localStorage.setItem('notif_intro_shown', 'true');
         }
 
         const notifications = this.get();
-        const unread = notifications.filter(n => !n.read);
-        const read = notifications.filter(n => n.read);
 
         const modal = document.createElement('div');
         modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:3000;padding:20px;`;
         const content = document.createElement('div');
-        content.style.cssText = `background:#FFFDF9;border-radius:24px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;`;
+        content.style.cssText = `background:#FFFDF9;border-radius:24px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);`;
 
         content.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                 <h3 style="color:#008080;">🔔 Уведомления</h3>
-                <div>
-                    <button id="notifMarkAllRead" style="background:none;border:none;color:#008080;cursor:pointer;font-size:13px;margin-right:12px;">Все прочитаны</button>
-                    <button id="notifCloseBtn" style="background:none;border:none;font-size:24px;cursor:pointer;color:#7B8D8E;">✕</button>
-                </div>
+                <button id="notifCloseBtn" style="background:none;border:none;font-size:24px;cursor:pointer;color:#7B8D8E;">✕</button>
             </div>
             <div id="notifList">
                 ${notifications.length === 0 ? '<p style="color:#7B8D8E;text-align:center;padding:20px 0;">Нет уведомлений</p>' :
                 notifications.map(n => `
-                    <div style="padding:10px 14px;margin-bottom:8px;background:${n.read ? '#F5F5F5' : '#E0F2F1'};border-radius:10px;border-left:4px solid ${n.read ? '#B0BEC5' : '#008080'};">
-                        <div style="font-size:14px;color:#37474F;">${n.message}</div>
-                        <div style="font-size:11px;color:#7B8D8E;margin-top:4px;">${new Date(n.timestamp).toLocaleString('ru')}</div>
-                        ${!n.read ? `<button class="notif-read-btn" data-id="${n.id}" style="background:none;border:none;color:#008080;cursor:pointer;font-size:12px;margin-top:4px;">✅ Прочитано</button>` : ''}
+                    <div style="padding:10px 14px;margin-bottom:8px;background:${n.read ? '#F5F5F5' : '#E0F2F1'};border-radius:10px;border-left:4px solid ${n.read ? '#B0BEC5' : '#008080'};display:flex;justify-content:space-between;align-items:center;">
+                        <div style="flex:1;">
+                            <div style="font-size:14px;color:#37474F;">${n.message}</div>
+                            <div style="font-size:11px;color:#7B8D8E;margin-top:4px;">${new Date(n.timestamp).toLocaleString('ru')}</div>
+                        </div>
+                        ${!n.read ? `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#008080;flex-shrink:0;margin-left:8px;"></span>` : ''}
                     </div>
                 `).join('')}
             </div>
@@ -128,16 +131,13 @@ const Notifications = {
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
         document.getElementById('notifCloseBtn').addEventListener('click', () => modal.remove());
 
-        const markAllBtn = document.getElementById('notifMarkAllRead');
-        if (markAllBtn) markAllBtn.addEventListener('click', () => { this.markAllAsRead(); modal.remove(); this.showList(); });
-
-        document.querySelectorAll('.notif-read-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.markAsRead(btn.dataset.id);
-                modal.remove();
-                this.showList();
-            });
-        });
+        // Автоматически помечаем как прочитанные при просмотре
+        const unread = notifications.filter(n => !n.read);
+        if (unread.length > 0) {
+            unread.forEach(n => n.read = true);
+            this.save(notifications);
+            this.updateBadge();
+        }
     }
 };
 

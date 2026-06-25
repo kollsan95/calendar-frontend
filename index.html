@@ -21,15 +21,11 @@
 
     <div id="app">
         <!-- Шапка -->
-        <div id="appHeader" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <div style="flex:1;"></div>
+        <div id="appHeader" style="display: none; justify-content: flex-end; align-items: center; margin-bottom: 16px;">
             <div style="display: flex; gap: 12px; align-items: center;">
                 <button id="notificationsBtn" style="padding: 8px 12px; background: none; border: none; font-size: 20px; cursor: pointer; position: relative; color: #37474F;">
                     🔔
                     <span id="notifBadge" style="display: none; position: absolute; top: -4px; right: -6px; background: #C62828; color: #FFF; font-size: 10px; border-radius: 50%; padding: 2px 6px; font-weight: 600;">0</span>
-                </button>
-                <button id="logoutBtn" style="padding: 8px 16px; background: #E0F2F1; color: #37474F; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; font-weight: 500;">
-                    Выйти
                 </button>
             </div>
         </div>
@@ -58,40 +54,45 @@
             <p style="margin-top: 20px; color: #008080; font-size: 16px; font-weight: 500;">Загрузка...</p>
         </div>
 
-        <!-- Фильтры (над календарём) -->
+        <!-- Фильтры -->
         <div id="filtersContainer" style="display: none; margin-bottom: 16px;">
             <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <span style="font-size: 13px; font-weight: 500; color: #37474F;">Фильтр по типу</span>
-                <button class="filter-chip" data-type="all" style="padding: 4px 14px; border-radius: 16px; border: 1px solid #008080; background: #008080; color: #FFF; font-size: 12px; cursor: pointer;">Все</button>
-                <button class="filter-chip" data-type="free" style="padding: 4px 14px; border-radius: 16px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 12px; cursor: pointer;">Свободные</button>
+                <span style="font-size: 14px; font-weight: 500; color: #37474F;">Фильтр по типу</span>
+                <button class="filter-chip" data-type="all" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #008080; background: #008080; color: #FFF; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,128,128,0.2);">Все</button>
+                <button class="filter-chip" data-type="free" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Свободные</button>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
-                <button class="filter-chip" data-type="Кератин" style="padding: 4px 14px; border-radius: 16px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 12px; cursor: pointer;">Кератин</button>
-                <button class="filter-chip" data-type="Ботокс" style="padding: 4px 14px; border-radius: 16px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 12px; cursor: pointer;">Ботокс</button>
-                <button class="filter-chip" data-type="Холодное" style="padding: 4px 14px; border-radius: 16px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 12px; cursor: pointer;">Холодное</button>
-                <button class="filter-chip" data-type="Полировка" style="padding: 4px 14px; border-radius: 16px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 12px; cursor: pointer;">Полировка</button>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                <button class="filter-chip" data-type="Кератин" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Кератин</button>
+                <button class="filter-chip" data-type="Ботокс" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Ботокс</button>
+                <button class="filter-chip" data-type="Холодное" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Холодное</button>
+                <button class="filter-chip" data-type="Полировка" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Полировка</button>
             </div>
             <div id="userFilterContainer" style="display: none; margin-top: 8px; text-align: center;">
-                <select id="userFilterSelect" style="padding: 4px 12px; border-radius: 16px; border: 1px solid #E0F2F1; font-size: 12px; background: #FFF;">
+                <select id="userFilterSelect" style="padding: 6px 16px; border-radius: 20px; border: 1px solid #E0F2F1; font-size: 14px; background: #FFF; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                     <option value="all">Все пользователи</option>
                 </select>
             </div>
         </div>
 
-        <!-- Календарь (фиксированная высота 50vh) -->
+        <!-- Календарь -->
         <div id="calendarContainer" style="height: 50vh; overflow: hidden; position: relative;"></div>
 
         <!-- Детальный режим -->
         <div id="detailContainer" style="display: none; height: 100%;"></div>
 
-        <!-- Кнопка Окошки (только в календаре) -->
-        <button id="windowsBtn" style="display: none; width: auto; padding: 6px 20px; margin: 12px auto 0; background: #E0F2F1; color: #008080; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: none;">
-            📋 Окошки
-        </button>
+        <!-- Нижняя панель -->
+        <div id="bottomPanel" style="display: none; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+            <button id="windowsBtn" style="flex: 1; padding: 10px 20px; background: #E0F2F1; color: #008080; border: none; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,128,128,0.15);">
+                📋 Окошки
+            </button>
+            <button id="logoutBtn" style="padding: 10px 20px; background: #FFEBEE; color: #C62828; border: none; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 12px rgba(198,40,40,0.15);">
+                Выйти
+            </button>
+        </div>
 
         <!-- Модалка Окошки -->
         <div id="windowsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
-            <div style="background: #FFFDF9; border-radius: 24px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+            <div style="background: #FFFDF9; border-radius: 24px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 style="color: #008080;">📋 Окошки</h3>
                     <button id="windowsCloseBtn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #7B8D8E;">✕</button>

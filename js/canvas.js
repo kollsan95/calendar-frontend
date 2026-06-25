@@ -6,11 +6,11 @@ const CanvasRenderer = {
         const centerX = size / 2;
         const centerY = size / 2;
         const radius = size / 2 - 6;
-        const innerRadius = radius * 0.2; // Отступ 20% от центра
+        const innerRadius = radius * 0.4; // 40% от центра
 
         ctx.clearRect(0, 0, size, size);
 
-        // Фон
+        // Прозрачный фон
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.fillStyle = '#FFFDF9';
@@ -22,7 +22,7 @@ const CanvasRenderer = {
         const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayRecords = records[dateKey] || [];
         const hourWidth = (Math.PI * 2) / CONFIG.WORKING_HOURS;
-        const startAngle = Math.PI / 2; // 9 часов слева
+        const startAngle = Math.PI / 2;
 
         const currentUser = Auth.getUser();
 
@@ -66,12 +66,10 @@ const CanvasRenderer = {
                     if (recordUsername !== userFilter) shouldBeGray = true;
                 }
             } else {
-                // Проверка свободных
-                if (isFreeMode) {
-                    isFree = true;
-                }
+                if (isFreeMode) isFree = true;
             }
 
+            // Рисуем сектор (от innerRadius до radius)
             ctx.beginPath();
             ctx.moveTo(centerX + innerRadius * Math.cos(angleStart), centerY + innerRadius * Math.sin(angleStart));
             ctx.arc(centerX, centerY, radius, angleStart, angleEnd);
@@ -91,6 +89,7 @@ const CanvasRenderer = {
                 ctx.lineWidth = 1;
                 ctx.stroke();
             } else {
+                // Прозрачный сектор
                 ctx.fillStyle = 'transparent';
                 ctx.fill();
                 ctx.strokeStyle = '#E0F2F1';
@@ -99,11 +98,11 @@ const CanvasRenderer = {
             }
         }
 
-        // Подписи часов (снаружи круга, горизонтально)
+        // Подписи часов (снаружи круга, горизонтально, увеличенный радиус)
         for (let i = 0; i < CONFIG.WORKING_HOURS; i++) {
             const hour = 9 + i;
             const angle = startAngle + i * hourWidth + hourWidth / 2;
-            const labelRadius = radius + 14;
+            const labelRadius = radius + (isSmall ? 12 : 20);
             const x = centerX + labelRadius * Math.cos(angle);
             const y = centerY + labelRadius * Math.sin(angle);
 
@@ -111,21 +110,13 @@ const CanvasRenderer = {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = '#7B8D8E';
-            ctx.font = isSmall ? '8px Montserrat, sans-serif' : '10px Montserrat, sans-serif';
-            // Не поворачиваем, пишем горизонтально
+            ctx.font = isSmall ? '8px Montserrat, sans-serif' : '11px Montserrat, sans-serif';
             ctx.fillText(String(hour).padStart(2, '0'), x, y);
             ctx.restore();
         }
 
-        // Число месяца в центре (только для календаря, не для детального)
-        if (!isSmall) {
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#37474F';
-            const fontSize = size * 0.32;
-            ctx.font = `600 ${fontSize}px Montserrat, sans-serif`;
-            ctx.fillText(day, centerX, centerY + 2);
-        }
+        // В центре не выводим дату для детального режима
+        // Для календаря дата выводится в createTile
     },
 
     createTile(day, records, year, month, onClick = null, filter = 'all', userFilter = null, isFreeMode = false) {
@@ -134,6 +125,16 @@ const CanvasRenderer = {
         canvas.height = 120;
         canvas.style.cssText = `width:100%;height:100%;cursor:pointer;border-radius:50%;transition:transform 0.2s,box-shadow 0.2s;`;
         this.drawTile(canvas, day, records, year, month, false, filter, userFilter, isFreeMode);
+        
+        // Добавляем число в центр (только для календаря)
+        const ctx = canvas.getContext('2d');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#37474F';
+        const fontSize = canvas.width * 0.32;
+        ctx.font = `600 ${fontSize}px Montserrat, sans-serif`;
+        ctx.fillText(day, canvas.width / 2, canvas.height / 2 + 2);
+        
         if (onClick) canvas.addEventListener('click', () => onClick(day));
         return canvas;
     }
