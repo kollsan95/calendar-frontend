@@ -27,8 +27,8 @@ const Detail = {
         if (this.container) { this.container.innerHTML = ''; this.container.style.display = 'none'; }
         const calendarContainer = document.getElementById('calendarContainer');
         if (calendarContainer) calendarContainer.style.display = 'block';
-        const filters = document.getElementById('filtersContainer');
-        if (filters) filters.style.display = 'block';
+        const filtersContainer = document.getElementById('filtersContainer');
+        if (filtersContainer) filtersContainer.style.display = 'block';
         const bottomPanel = document.getElementById('bottomPanel');
         if (bottomPanel) bottomPanel.style.display = 'flex';
     },
@@ -52,8 +52,8 @@ const Detail = {
         // Фильтры (чипсы) — справа
         const filterWrapper = document.createElement('div');
         filterWrapper.style.cssText = `display:flex;flex-wrap:wrap;gap:4px;`;
-        const filters = ['Все', 'Свободные', 'Кератин', 'Ботокс', 'Холодное', 'Полировка'];
-        filters.forEach(label => {
+        const filterLabels = ['Все', 'Свободные', 'Кератин', 'Ботокс', 'Холодное', 'Полировка'];
+        filterLabels.forEach(label => {
             const type = label === 'Все' ? 'all' : label === 'Свободные' ? 'free' : label;
             const chip = document.createElement('button');
             chip.textContent = label;
@@ -64,6 +64,7 @@ const Detail = {
                 background:${isActive ? '#008080' : '#FFF'};color:${isActive ? '#FFF' : '#37474F'};
                 font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                user-select: none;
             `;
             chip.addEventListener('click', () => {
                 this.filter = type;
@@ -80,7 +81,7 @@ const Detail = {
             const userFilterDiv = document.createElement('div');
             userFilterDiv.style.cssText = `display:flex;justify-content:flex-end;margin-bottom:8px;`;
             const select = document.createElement('select');
-            select.style.cssText = `padding:4px 14px;border-radius:16px;border:1px solid #E0F2F1;font-size:12px;background:#FFF;font-family:'Montserrat',sans-serif;box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
+            select.style.cssText = `padding:4px 14px;border-radius:16px;border:1px solid #E0F2F1;font-size:12px;background:#FFF;font-family:'Montserrat',sans-serif;box-shadow: 0 2px 4px rgba(0,0,0,0.05);cursor:pointer;`;
             select.innerHTML = '<option value="all">Все пользователи</option>';
             API.getUsers().then(users => {
                 users.forEach(u => {
@@ -154,7 +155,6 @@ const Detail = {
         // Свайп (мышь и touch)
         let isDraggingCarousel = false;
         let startX = 0;
-        let currentX = 0;
         let startScrollPos = 0;
 
         const startCarouselDrag = (x) => {
@@ -168,7 +168,6 @@ const Detail = {
             const diff = x - startX;
             const track = document.getElementById('carouselTrack');
             if (!track) return;
-            const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
             this.carouselScrollPos = startScrollPos + diff;
             track.style.transform = `translateX(${this.carouselScrollPos}px)`;
         };
@@ -179,7 +178,6 @@ const Detail = {
             if (!track) return;
             track.style.transition = 'transform 0.4s ease';
             const itemWidth = track.children[0]?.offsetWidth + 8 || 68;
-            // Привязка к ближайшему элементу
             const offset = Math.round(this.carouselScrollPos / itemWidth) * itemWidth;
             this.carouselScrollPos = offset;
             track.style.transform = `translateX(${offset}px)`;
@@ -315,8 +313,6 @@ const Detail = {
                 ctx.fillText(String(hour).padStart(2, '0'), lx, ly);
                 ctx.restore();
             }
-
-            // Центр прозрачный
         };
 
         drawDetailTile();
@@ -350,7 +346,6 @@ const Detail = {
             e.preventDefault();
             const hour = getHourFromEvent(e);
             if (hour === null) return;
-            // Проверяем, занят ли сектор
             const dateKey = `${this.year}-${String(this.month).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`;
             const dayRecords = this.recordsData[dateKey] || [];
             let isBooked = false;
@@ -449,8 +444,8 @@ const Detail = {
         // Скрываем календарь и нижнюю панель
         const calendarContainer = document.getElementById('calendarContainer');
         if (calendarContainer) calendarContainer.style.display = 'none';
-        const filters = document.getElementById('filtersContainer');
-        if (filters) filters.style.display = 'none';
+        const filtersContainer = document.getElementById('filtersContainer');
+        if (filtersContainer) filtersContainer.style.display = 'none';
         const bottomPanel = document.getElementById('bottomPanel');
         if (bottomPanel) bottomPanel.style.display = 'none';
     },
@@ -459,9 +454,6 @@ const Detail = {
         const daysInMonth = new Date(this.year, this.month, 0).getDate();
         const daysOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
         track.innerHTML = '';
-
-        // Добавляем загрузку для предыдущего месяца (пока заглушка)
-        // Здесь можно будет реализовать подгрузку соседних месяцев
 
         for (let d = 1; d <= daysInMonth; d++) {
             const tileWrapper = document.createElement('div');
@@ -480,7 +472,6 @@ const Detail = {
             CanvasRenderer.drawTile(canvas, d, this.recordsData, this.year, this.month, true, this.filter, this.userFilter, this.isFreeMode);
             tile.appendChild(canvas);
 
-            // Подпись дня недели
             const dateObj = new Date(this.year, this.month - 1, d);
             const dayLabel = document.createElement('div');
             dayLabel.style.cssText = `text-align:center;font-size:9px;color:#7B8D8E;margin-top:2px;`;
@@ -506,7 +497,7 @@ const Detail = {
             if (dayNum === this.day) { targetIndex = i; break; }
         }
         const trackWidth = track.parentElement?.offsetWidth || 300;
-        const itemWidth = 60 + 8; // 60px + gap
+        const itemWidth = 60 + 8;
         const offset = targetIndex * itemWidth - trackWidth / 2 + itemWidth / 2;
         this.carouselScrollPos = -offset;
         track.style.transform = `translateX(${this.carouselScrollPos}px)`;
