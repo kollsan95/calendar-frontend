@@ -1,47 +1,41 @@
-// ===== Запросы к GAS =====
+// ===== Запросы к GAS через google.script.run (без CORS) =====
+
 const API = {
-    async request(params) {
-        const url = new URL(CONFIG.GAS_URL);
-        Object.entries(params).forEach(([k, v]) => url.searchParams.append(k, v));
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            mode: 'cors',
-            credentials: 'omit'
+    /**
+     * Универсальный вызов google.script.run
+     */
+    call(functionName, params = {}) {
+        return new Promise((resolve, reject) => {
+            // Проверяем, что google.script.run доступен
+            if (typeof google === 'undefined' || !google.script) {
+                reject(new Error('Google API не загружен. Проверьте подключение к интернету.'));
+                return;
+            }
+            
+            google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                [functionName](params);
         });
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
-        }
-        return await response.json();
     },
 
-    async postRequest(data) {
-        const response = await fetch(CONFIG.GAS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            mode: 'cors',
-            credentials: 'omit',
-            body: JSON.stringify(data)
-        });
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
-        }
-        return await response.json();
-    },
-
+    /**
+     * Логин
+     */
     async login(username, password) {
-        return this.request({ action: 'login', username, password });
+        return this.call('login', { username, password });
     },
 
+    /**
+     * Валидация токена
+     */
     async validate(token) {
-        return this.request({ action: 'validate', token });
+        return this.call('validate', { token });
     },
 
+    /**
+     * Получение записей за месяц (с кешем)
+     */
     async getRecords(year, month, forceRefresh = false) {
         if (!forceRefresh) {
             const cached = Cache.get(year, month);
@@ -50,8 +44,9 @@ const API = {
                 return cached;
             }
         }
-        console.log(`🌐 Сервер: ${year}-${month}`);
-        const data = await this.request({ action: 'getData', year, month });
+        
+        console.log(`🌐 Сервер (google.script.run): ${year}-${month}`);
+        const data = await this.call('getData', { year, month });
         if (data.status === 'ok') {
             Cache.set(year, month, data.data || {});
             return data.data || {};
@@ -59,24 +54,33 @@ const API = {
         throw new Error(data.message || 'Ошибка получения данных');
     },
 
+    /**
+     * Сохранение записи
+     */
     async saveRecord(record) {
-        const data = await this.postRequest({ action: 'saveRecord', ...record });
+        const data = await this.call('saveRecord', record);
         if (data.status !== 'ok') {
             throw new Error(data.message || 'Ошибка сохранения');
         }
         return data;
     },
 
+    /**
+     * Удаление записи
+     */
     async deleteRecord(recordId) {
-        const data = await this.postRequest({ action: 'deleteRecord', recordId });
+        const data = await this.call('deleteRecord', { recordId });
         if (data.status !== 'ok') {
             throw new Error(data.message || 'Ошибка удаления');
         }
         return data;
     },
 
+    /**
+     * Получение списка пользователей
+     */
     async getUsers() {
-        const data = await this.request({ action: 'getUsers' });
+        const data = await this.call('getUsers', {});
         if (data.status === 'ok') {
             return data.users || [];
         }
