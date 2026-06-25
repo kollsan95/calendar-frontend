@@ -58,7 +58,8 @@ h1 {
   letter-spacing: 0.3px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 14px 16px;
   border: 1.5px solid #E0F2F1;
@@ -71,7 +72,8 @@ h1 {
   outline: none;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: #008080;
   box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.08);
 }
@@ -143,33 +145,6 @@ h1 {
   border-left: 4px solid #0D47A1;
 }
 
-/* ===== Контейнер для календаря ===== */
-#calendarContainer {
-  margin-top: 20px;
-  display: none;
-}
-
-/* ===== Адаптивность ===== */
-@media (max-width: 480px) {
-  #app {
-    padding: 24px 16px;
-    border-radius: 24px;
-  }
-
-  h1 {
-    font-size: 22px;
-  }
-
-  .form-group input {
-    padding: 12px 14px;
-    font-size: 15px;
-  }
-
-  .btn-primary {
-    padding: 14px;
-    font-size: 16px;
-  }
-}
 /* ===== Спиннер ===== */
 .spinner {
   width: 48px;
@@ -183,4 +158,27 @@ h1 {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* ===== Адаптивность ===== */
+@media (max-width: 480px) {
+  #app {
+    padding: 24px 16px;
+    border-radius: 24px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .btn-primary {
+    padding: 14px;
+    font-size: 16px;
+  }
 }

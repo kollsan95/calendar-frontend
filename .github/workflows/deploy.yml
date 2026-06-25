@@ -25,16 +25,13 @@ jobs:
             echo "::error::Secret GAS_URL is not set"
             exit 1
           fi
-          
-          # Инжектируем GAS_URL в config.js
+
           sed -i "s|{{GAS_URL}}|$GAS_URL|g" js/config.js
           echo "✅ GAS_URL injected into config.js"
-          
-          # Инжектируем VERSION в config.js
+
           sed -i "s|{{VERSION}}|$VERSION|g" js/config.js
           echo "✅ VERSION injected into config.js"
-          
-          # Инжектируем VERSION в index.html
+
           sed -i "s|{{VERSION}}|$VERSION|g" index.html
           echo "✅ VERSION injected into index.html"
 

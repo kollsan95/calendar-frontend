@@ -1,93 +1,119 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Календарь мастера</title>
-  
-  <!-- Кеш-контроль -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>" />
-  
-  <!-- Подключение шрифтов -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Календарь мастера</title>
 
-  <!-- Подключение стилей -->
-  <link rel="stylesheet" href="styles.css?v={{VERSION}}" />
+    <!-- Кеш-контроль -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>" />
+
+    <!-- Подключение шрифтов -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="styles.css?v={{VERSION}}" />
 </head>
 <body>
 
-  <div id="app">
-    <!-- Шапка с кнопкой выхода -->
-    <div id="appHeader" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h1 style="font-size: 20px; margin: 0; color: #008080;">📅 Календарь мастера</h1>
-      <button id="logoutBtn" style="padding: 8px 16px; background: #E0F2F1; color: #37474F; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; font-weight: 500;">
-        Выйти
-      </button>
-    </div>
-
-    <!-- Блок авторизации -->
-    <div id="authBlock">
-      <h1>Добро пожаловать</h1>
-      <div class="subtitle">Войдите в систему</div>
-
-      <form id="loginForm" autocomplete="off">
-        <div class="form-group">
-          <label for="username">Имя пользователя</label>
-          <input 
-            type="text" 
-            id="username" 
-            placeholder="Введите имя" 
-            required 
-            autocomplete="username"
-          />
+    <div id="app">
+        <!-- Шапка -->
+        <div id="appHeader" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h1 style="font-size: 20px; margin: 0; color: #008080;">📅 Календарь мастера</h1>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="notificationsBtn" style="padding: 8px 12px; background: none; border: none; font-size: 20px; cursor: pointer; position: relative; color: #37474F;">
+                    🔔
+                    <span id="notifBadge" style="display: none; position: absolute; top: -4px; right: -6px; background: #C62828; color: #FFF; font-size: 10px; border-radius: 50%; padding: 2px 6px; font-weight: 600;">0</span>
+                </button>
+                <button id="logoutBtn" style="padding: 8px 16px; background: #E0F2F1; color: #37474F; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; font-weight: 500;">
+                    Выйти
+                </button>
+            </div>
         </div>
 
-        <div class="form-group">
-          <label for="password">Пароль</label>
-          <input 
-            type="password" 
-            id="password" 
-            placeholder="Введите пароль" 
-            required 
-            autocomplete="current-password"
-          />
+        <!-- Авторизация -->
+        <div id="authBlock">
+            <h1>Добро пожаловать</h1>
+            <div class="subtitle">Войдите в систему</div>
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" id="username" placeholder="Введите имя" required autocomplete="username" />
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" placeholder="Введите пароль" required autocomplete="current-password" />
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtn">Войти</button>
+            </form>
+            <div id="message" class="message"></div>
         </div>
 
-        <button type="submit" class="btn-primary" id="loginBtn">Войти</button>
-      </form>
+        <!-- Лоадер -->
+        <div id="loader" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; color: #008080; font-size: 16px; font-weight: 500;">Загрузка...</p>
+        </div>
 
-      <div id="message" class="message"></div>
+        <!-- Календарь -->
+        <div id="calendarContainer"></div>
+
+        <!-- Детальный режим -->
+        <div id="detailContainer" style="display: none;"></div>
+
+        <!-- Модалка Окошки -->
+        <div id="windowsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
+            <div style="background: #FFFDF9; border-radius: 24px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #008080;">📋 Окошки</h3>
+                    <button id="windowsCloseBtn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #7B8D8E;">✕</button>
+                </div>
+                <div id="windowsContent" style="font-family: 'Montserrat', monospace; font-size: 13px; line-height: 1.6; color: #37474F;"></div>
+            </div>
+        </div>
+
+        <!-- Фильтры (под календарём) -->
+        <div id="filtersContainer" style="display: none; margin-top: 20px; padding-top: 16px; border-top: 1px solid #E0F2F1;">
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 13px; font-weight: 500; color: #37474F; margin-right: 8px;">Фильтр по типу:</span>
+                <button class="filter-chip" data-type="Кератин" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; font-size: 12px; cursor: pointer; transition: all 0.2s;">Кератин</button>
+                <button class="filter-chip" data-type="Ботокс" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; font-size: 12px; cursor: pointer; transition: all 0.2s;">Ботокс</button>
+                <button class="filter-chip" data-type="Холодное" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; font-size: 12px; cursor: pointer; transition: all 0.2s;">Холодное</button>
+                <button class="filter-chip" data-type="Полировка" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; font-size: 12px; cursor: pointer; transition: all 0.2s;">Полировка</button>
+                <button class="filter-chip" data-type="all" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #008080; background: #008080; color: #FFF; font-size: 12px; cursor: pointer; transition: all 0.2s;">Все</button>
+            </div>
+            <div id="userFilterContainer" style="display: none; margin-top: 8px;">
+                <span style="font-size: 13px; font-weight: 500; color: #37474F; margin-right: 8px;">Пользователь:</span>
+                <select id="userFilterSelect" style="padding: 6px 12px; border-radius: 20px; border: 1px solid #E0F2F1; font-size: 12px; background: #FFF;"></select>
+            </div>
+        </div>
+
+        <!-- Кнопка Окошки -->
+        <button id="windowsBtn" style="display: none; width: 100%; padding: 12px; margin-top: 16px; background: #E0F2F1; color: #008080; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;">
+            📋 Окошки
+        </button>
     </div>
 
-    <!-- Лоадер -->
-    <div id="loader" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
-      <div class="spinner"></div>
-      <p style="margin-top: 20px; color: #008080; font-size: 16px; font-weight: 500;">Загрузка...</p>
-    </div>
-
-    <!-- Контейнер для календаря -->
-    <div id="calendarContainer"></div>
-
-    <!-- Контейнер для детального режима -->
-    <div id="detailContainer" style="display: none;"></div>
-  </div>
-
-  <!-- Подключение скриптов (порядок важен!) -->
-  <script src="js/config.js?v={{VERSION}}"></script>
-  <script src="js/cache.js?v={{VERSION}}"></script>
-  <script src="js/api.js?v={{VERSION}}"></script>
-  <script src="js/canvas.js?v={{VERSION}}"></script>
-  <script src="js/calendar.js?v={{VERSION}}"></script>
-  <script src="js/auth.js?v={{VERSION}}"></script>
-  <script src="js/modal.js?v={{VERSION}}"></script>
-  <script src="js/detail.js?v={{VERSION}}"></script>
-  <script src="js/main.js?v={{VERSION}}"></script>
+    <!-- Подключение скриптов -->
+    <script src="js/config.js?v={{VERSION}}"></script>
+    <script src="js/cache.js?v={{VERSION}}"></script>
+    <script src="js/api.js?v={{VERSION}}"></script>
+    <script src="js/canvas.js?v={{VERSION}}"></script>
+    <script src="js/calendar.js?v={{VERSION}}"></script>
+    <script src="js/auth.js?v={{VERSION}}"></script>
+    <script src="js/modal.js?v={{VERSION}}"></script>
+    <script src="js/detail.js?v={{VERSION}}"></script>
+    <script src="js/notifications.js?v={{VERSION}}"></script>
+    <script src="js/filters.js?v={{VERSION}}"></script>
+    <script src="js/windows.js?v={{VERSION}}"></script>
+    <script src="js/sw.js?v={{VERSION}}"></script>
+    <script src="js/main.js?v={{VERSION}}"></script>
 </body>
 </html>
