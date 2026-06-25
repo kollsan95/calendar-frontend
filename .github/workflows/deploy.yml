@@ -16,24 +16,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Inject GAS_URL and VERSION into files
+      - name: Inject GAS_URL into files
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
-          VERSION: ${{ github.sha }}
         run: |
           if [ -z "$GAS_URL" ]; then
             echo "::error::Secret GAS_URL is not set"
             exit 1
           fi
 
-          sed -i "s|{{GAS_URL}}|$GAS_URL|g" js/config.js
-          echo "✅ GAS_URL injected into config.js"
-
-          sed -i "s|{{VERSION}}|$VERSION|g" js/config.js
-          echo "✅ VERSION injected into config.js"
-
-          sed -i "s|{{VERSION}}|$VERSION|g" index.html
-          echo "✅ VERSION injected into index.html"
+          # Заменяем GAS_URL в index.html и sw.js
+          sed -i "s|ВАШ_GAS_ID|$GAS_URL|g" index.html
+          sed -i "s|ВАШ_GAS_ID|$GAS_URL|g" sw.js
+          echo "✅ GAS_URL injected"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -44,4 +39,4 @@ jobs:
           force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy version ${{ env.VERSION }}'
+          commit_message: 'Deploy with GAS_URL'

@@ -1,188 +1,107 @@
+/* ============================================
+   Стили для обёртки (IFRAME, лоадер, баннер)
+   ============================================ */
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+html,
 body {
-    font-family: 'Montserrat', 'Inter', sans-serif;
-    background: #FFFDF9;
-    color: #37474F;
-    min-height: 100vh;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 20px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #FFFDF9;
+  font-family: 'Montserrat', 'Inter', sans-serif;
 }
 
-#app {
-    max-width: 480px;
-    width: 100%;
-    background: #FFFDF9;
-    border-radius: 32px;
-    padding: 16px 20px 20px;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+#app-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
 
-/* ===== Заголовки ===== */
-h1 {
-    font-size: 26px;
-    font-weight: 600;
-    color: #008080;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
+/* ===== Лоадер ===== */
+.loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #FFFDF9;
+  z-index: 1000;
+  font-family: 'Montserrat', 'Inter', sans-serif;
+  color: #008080;
+  transition: opacity 0.5s ease;
 }
 
-.subtitle {
-    font-size: 14px;
-    color: #7B8D8E;
-    margin-bottom: 28px;
-    font-weight: 400;
-    border-left: 3px solid #008080;
-    padding-left: 12px;
+.loader.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* ===== Форма ===== */
-.form-group {
-    margin-bottom: 18px;
+.loader .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #E0F2F1;
+  border-top: 4px solid #008080;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
-.form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: #37474F;
-    margin-bottom: 6px;
-    letter-spacing: 0.3px;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1.5px solid #E0F2F1;
-    border-radius: 14px;
-    font-size: 16px;
-    font-family: 'Montserrat', sans-serif;
-    color: #37474F;
-    background: #FFFFFF;
-    transition: border 0.2s, box-shadow 0.2s;
-    outline: none;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    border-color: #008080;
-    box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.08);
-}
-
-/* ===== Кнопки ===== */
-.btn-primary {
-    width: 100%;
-    padding: 16px;
-    background: #008080;
-    color: #FFFFFF;
-    border: none;
-    border-radius: 14px;
-    font-size: 17px;
-    font-weight: 600;
-    font-family: 'Montserrat', sans-serif;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    margin-top: 8px;
-    letter-spacing: 0.5px;
-}
-
-.btn-primary:hover {
-    background: #006666;
-}
-
-.btn-primary:active {
-    transform: scale(0.98);
-}
-
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* ===== Сообщения ===== */
-.message {
-    margin-top: 16px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    display: none;
-    font-weight: 500;
-}
-
-.message.error {
-    display: block;
-    background: #FFEBEE;
-    color: #C62828;
-    border-left: 4px solid #C62828;
-}
-
-.message.success {
-    display: block;
-    background: #E0F2F1;
-    color: #006666;
-    border-left: 4px solid #008080;
-}
-
-/* ===== Спиннер ===== */
-.spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid #E0F2F1;
-    border-top: 4px solid #008080;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+.loader p {
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* ===== Адаптивность ===== */
-@media (max-width: 480px) {
-    #app {
-        padding: 12px 12px 16px;
-        border-radius: 24px;
-    }
-    h1 { font-size: 22px; }
-    .form-group input, .form-group select { padding: 12px 14px; font-size: 15px; }
-    .btn-primary { padding: 14px; font-size: 16px; }
+/* ===== Баннер установки ===== */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #008080;
+  color: #FFF;
+  padding: 12px 20px;
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2000;
+  font-family: 'Montserrat', sans-serif;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Анимации для модалок */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+.install-banner.show {
+  display: flex;
 }
 
-button, .filter-chip, #windowsBtn, #logoutBtn, select {
-    user-select: none;
-    -webkit-user-select: none;
+.install-banner button {
+  background: #FFF;
+  color: #008080;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.filter-chip, #windowsBtn, #logoutBtn {
-    transition: all 0.2s ease;
-}
-
-.filter-chip:hover, #windowsBtn:hover, #logoutBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15) !important;
-}
-
-.filter-chip:active, #windowsBtn:active, #logoutBtn:active {
-    transform: translateY(0px);
+.install-banner .close {
+  background: none;
+  color: #FFF;
+  font-size: 20px;
+  padding: 0 8px;
 }

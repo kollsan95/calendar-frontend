@@ -1,118 +1,181 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Календарь мастера</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Календарь мастера</title>
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+  <!-- PWA Meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Календарь мастера" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#008080" />
+  <meta name="background-color" content="#FFFDF9" />
+  <meta name="description" content="Приложение для записи на услуги (кератин, ботокс, холодное, полировка)" />
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>" />
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
 
-    <link rel="stylesheet" href="styles.css?v={{VERSION}}" />
+  <!-- Шрифты -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Стили -->
+  <link rel="stylesheet" href="/styles.css" />
+
+  <style>
+    /* Дополнительные стили для обёртки (если не помещаются в styles.css) */
+    .install-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #008080;
+      color: #FFF;
+      padding: 12px 20px;
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2000;
+      font-family: 'Montserrat', sans-serif;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    }
+    .install-banner.show {
+      display: flex;
+    }
+    .install-banner button {
+      background: #FFF;
+      color: #008080;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .install-banner .close {
+      background: none;
+      color: #FFF;
+      font-size: 20px;
+      padding: 0 8px;
+    }
+  </style>
 </head>
 <body>
 
-    <div id="app">
-        <!-- Шапка -->
-        <div id="appHeader" style="display: none; justify-content: flex-end; align-items: center; margin-bottom: 16px;">
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button id="notificationsBtn" style="padding: 8px 12px; background: none; border: none; font-size: 20px; cursor: pointer; position: relative; color: #37474F;">
-                    🔔
-                    <span id="notifBadge" style="display: none; position: absolute; top: -4px; right: -6px; background: #C62828; color: #FFF; font-size: 10px; border-radius: 50%; padding: 2px 6px; font-weight: 600;">0</span>
-                </button>
-            </div>
-        </div>
+  <!-- Лоадер -->
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p>📅 Загрузка приложения...</p>
+  </div>
 
-        <!-- Авторизация -->
-        <div id="authBlock">
-            <h1>Добро пожаловать</h1>
-            <div class="subtitle">Войдите в систему</div>
-            <form id="loginForm" autocomplete="off">
-                <div class="form-group">
-                    <label for="username">Имя пользователя</label>
-                    <input type="text" id="username" placeholder="Введите имя" required autocomplete="username" />
-                </div>
-                <div class="form-group">
-                    <label for="password">Пароль</label>
-                    <input type="password" id="password" placeholder="Введите пароль" required autocomplete="current-password" />
-                </div>
-                <button type="submit" class="btn-primary" id="loginBtn">Войти</button>
-            </form>
-            <div id="message" class="message"></div>
-        </div>
+  <!-- IFRAME с GAS-приложением -->
+  <iframe id="app-frame" src="https://script.google.com/macros/s/ВАШ_GAS_ID/exec" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
 
-        <!-- Лоадер -->
-        <div id="loader" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
-            <div class="spinner"></div>
-            <p style="margin-top: 20px; color: #008080; font-size: 16px; font-weight: 500;">Загрузка...</p>
-        </div>
-
-        <!-- Фильтры -->
-        <div id="filtersContainer" style="display: none; margin-bottom: 16px;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <span style="font-size: 14px; font-weight: 500; color: #37474F;">Фильтр по типу</span>
-                <button class="filter-chip" data-type="all" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #008080; background: #008080; color: #FFF; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,128,128,0.2);">Все</button>
-                <button class="filter-chip" data-type="free" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Свободные</button>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
-                <button class="filter-chip" data-type="Кератин" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Кератин</button>
-                <button class="filter-chip" data-type="Ботокс" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Ботокс</button>
-                <button class="filter-chip" data-type="Холодное" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Холодное</button>
-                <button class="filter-chip" data-type="Полировка" style="padding: 6px 18px; border-radius: 20px; border: 1px solid #E0F2F1; background: #FFF; color: #37474F; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Полировка</button>
-            </div>
-            <div id="userFilterContainer" style="display: none; margin-top: 8px; text-align: center;">
-                <select id="userFilterSelect" style="padding: 6px 16px; border-radius: 20px; border: 1px solid #E0F2F1; font-size: 14px; background: #FFF; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <option value="all">Все пользователи</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Календарь -->
-        <div id="calendarContainer" style="height: 50vh; overflow: hidden; position: relative;"></div>
-
-        <!-- Детальный режим -->
-        <div id="detailContainer" style="display: none; height: 100%;"></div>
-
-        <!-- Нижняя панель -->
-        <div id="bottomPanel" style="display: none; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-            <button id="windowsBtn" style="flex: 1; padding: 10px 20px; background: #E0F2F1; color: #008080; border: none; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,128,128,0.15);">
-                📋 Окошки
-            </button>
-            <button id="logoutBtn" style="padding: 10px 20px; background: #FFEBEE; color: #C62828; border: none; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 12px rgba(198,40,40,0.15);">
-                Выйти
-            </button>
-        </div>
-
-        <!-- Модалка Окошки -->
-        <div id="windowsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
-            <div style="background: #FFFDF9; border-radius: 24px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="color: #008080;">📋 Окошки</h3>
-                    <button id="windowsCloseBtn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #7B8D8E;">✕</button>
-                </div>
-                <div id="windowsContent" style="font-family: 'Montserrat', monospace; font-size: 13px; line-height: 1.6; color: #37474F;"></div>
-            </div>
-        </div>
+  <!-- Баннер установки PWA -->
+  <div id="installBanner" class="install-banner">
+    <span>📱 Установите приложение на домашний экран</span>
+    <div>
+      <button id="installBtn">Установить</button>
+      <button id="closeBanner" class="close">✕</button>
     </div>
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="js/config.js?v={{VERSION}}"></script>
-    <script src="js/cache.js?v={{VERSION}}"></script>
-    <script src="js/api.js?v={{VERSION}}"></script>
-    <script src="js/canvas.js?v={{VERSION}}"></script>
-    <script src="js/calendar.js?v={{VERSION}}"></script>
-    <script src="js/auth.js?v={{VERSION}}"></script>
-    <script src="js/modal.js?v={{VERSION}}"></script>
-    <script src="js/detail.js?v={{VERSION}}"></script>
-    <script src="js/notifications.js?v={{VERSION}}"></script>
-    <script src="js/filters.js?v={{VERSION}}"></script>
-    <script src="js/windows.js?v={{VERSION}}"></script>
-    <script src="js/main.js?v={{VERSION}}"></script>
+  </div>
+
+  <!-- Service Worker и логика -->
+  <script>
+    // === КОНФИГУРАЦИЯ ===
+    // ⚠️ ЗАМЕНИТЕ НА ВАШ GAS_URL
+    const GAS_URL = 'https://script.google.com/macros/s/ВАШ_GAS_ID/exec';
+
+    // === Устанавливаем src IFRAME ===
+    document.getElementById('app-frame').src = GAS_URL;
+
+    // === Регистрация Service Worker ===
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker зарегистрирован:', registration);
+        })
+        .catch((error) => {
+          console.warn('⚠️ Service Worker не зарегистрирован:', error);
+        });
+    }
+
+    // === Скрываем лоадер ===
+    const iframe = document.getElementById('app-frame');
+    const loader = document.getElementById('loader');
+
+    iframe.addEventListener('load', () => {
+      setTimeout(() => {
+        loader.classList.add('hidden');
+        setTimeout(() => {
+          loader.style.display = 'none';
+        }, 500);
+      }, 300);
+    });
+
+    // === Обработка ошибок загрузки ===
+    iframe.addEventListener('error', () => {
+      loader.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+          <h3 style="color: #C62828;">Не удалось загрузить приложение</h3>
+          <p style="color: #7B8D8E; margin-top: 8px;">
+            Проверьте подключение к интернету и попробуйте обновить страницу.
+          </p>
+          <button onclick="location.reload()" style="margin-top: 16px; padding: 10px 24px; background: #008080; color: #FFF; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;">
+            Обновить
+          </button>
+        </div>
+      `;
+    });
+
+    // === PWA: Установка на домашний экран ===
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.add('show');
+    });
+
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const result = await deferredPrompt.userChoice;
+        console.log('✅ Установка:', result.outcome);
+        deferredPrompt = null;
+        document.getElementById('installBanner').classList.remove('show');
+      }
+    });
+
+    document.getElementById('closeBanner').addEventListener('click', () => {
+      document.getElementById('installBanner').classList.remove('show');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('installBanner').classList.remove('show');
+      console.log('✅ Приложение установлено');
+    });
+
+    // === Офлайн-баннер (сообщение в IFRAME) ===
+    window.addEventListener('online', () => {
+      console.log('🟢 Сеть восстановлена');
+      iframe.contentWindow?.postMessage({ type: 'online' }, '*');
+    });
+
+    window.addEventListener('offline', () => {
+      console.log('🔴 Сеть отсутствует');
+      iframe.contentWindow?.postMessage({ type: 'offline' }, '*');
+    });
+  </script>
 </body>
 </html>
