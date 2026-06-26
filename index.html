@@ -17,6 +17,7 @@
 
     <link rel="stylesheet" href="styles.css" />
 
+    <!-- Конфигурация ({{GAS_URL}} заменяется GitHub Actions) -->
     <script>
         const GAS_URL = '{{GAS_URL}}';
     </script>
@@ -179,14 +180,6 @@
                 loadingEl.classList.add('show');
 
                 // === ЗАПРОС К GAS ===
-                // Проверяем, что GAS_URL подставлен
-                if (GAS_URL === '{{GAS_URL}}' || !GAS_URL) {
-                    showMessage('Ошибка конфигурации: GAS_URL не подставлен', 'error');
-                    loadingEl.classList.remove('show');
-                    loginBtn.disabled = false;
-                    return;
-                }
-
                 var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
 
                 fetch(url, {
