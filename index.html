@@ -17,11 +17,8 @@
 
     <link rel="stylesheet" href="styles.css" />
 
-    <!-- Конфигурация -->
     <script>
-        // === КОНФИГУРАЦИЯ ===
-        // Замените на ваш GAS URL
-        const GAS_URL = 'https://script.google.com/macros/s/ВАШ_GAS_ID/exec';
+        const GAS_URL = '{{GAS_URL}}';
     </script>
 </head>
 <body>
@@ -71,8 +68,6 @@
             var loginBtn = document.getElementById('loginBtn');
             var messageEl = document.getElementById('message');
             var loadingEl = document.getElementById('loginLoading');
-
-            // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 
             function showMessage(text, type) {
                 messageEl.className = 'message ' + type;
@@ -130,12 +125,10 @@
 
             function executeScripts(scripts) {
                 try {
-                    // Выполняем скрипты в правильном порядке
                     var order = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
                     for (var i = 0; i < order.length; i++) {
                         var key = order[i];
                         if (scripts[key]) {
-                            // Используем eval для выполнения
                             eval(scripts[key]);
                             console.log('✅ Выполнен: ' + key);
                         }
@@ -148,13 +141,10 @@
             }
 
             function initApp() {
-                // Проверяем, загружены ли скрипты в localStorage
                 var scripts = loadScriptsFromStorage();
 
                 if (scripts) {
-                    // Скрипты есть — выполняем их
                     if (executeScripts(scripts)) {
-                        // Вызываем инициализацию приложения
                         if (typeof window.initApp === 'function') {
                             window.initApp();
                         } else {
@@ -165,7 +155,6 @@
                     }
                 }
 
-                // Скриптов нет — остаёмся на странице входа
                 showAuth();
                 console.log('🔐 Нет скриптов в localStorage, показываем страницу входа');
             }
@@ -190,6 +179,14 @@
                 loadingEl.classList.add('show');
 
                 // === ЗАПРОС К GAS ===
+                // Проверяем, что GAS_URL подставлен
+                if (GAS_URL === '{{GAS_URL}}' || !GAS_URL) {
+                    showMessage('Ошибка конфигурации: GAS_URL не подставлен', 'error');
+                    loadingEl.classList.remove('show');
+                    loginBtn.disabled = false;
+                    return;
+                }
+
                 var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
 
                 fetch(url, {
@@ -207,12 +204,9 @@
                     loginBtn.disabled = false;
 
                     if (data.status === 'ok') {
-                        // === УСПЕШНЫЙ ВХОД ===
-                        // Сохраняем токен
                         localStorage.setItem('authToken', data.token);
                         localStorage.setItem('userRole', data.user.role || 'user');
 
-                        // Сохраняем скрипты
                         if (data.scripts) {
                             saveScripts(data.scripts);
                         } else {
@@ -221,10 +215,7 @@
                             return;
                         }
 
-                        // Показываем приложение
                         showMessage('✅ Вход выполнен!', 'success');
-
-                        // Инициализируем приложение
                         initApp();
 
                     } else {
@@ -239,12 +230,9 @@
                 });
             });
 
-            // === ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ ===
-
             function checkAuth() {
                 var token = localStorage.getItem('authToken');
                 if (token) {
-                    // Пытаемся загрузить приложение
                     initApp();
                 } else {
                     showAuth();
