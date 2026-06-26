@@ -1,13 +1,11 @@
 // ============================================
-//  SERVICE WORKER ДЛЯ PWA
+//  SERVICE WORKER
 // ============================================
 
 const CACHE_NAME = 'calendar-pwa-v1';
-
 const urlsToCache = [
     '/',
     '/index.html',
-    '/styles.css',
     '/manifest.json',
     '/favicon.ico',
     '/icons/icon-72.png',
@@ -21,23 +19,24 @@ const urlsToCache = [
 ];
 
 // === УСТАНОВКА ===
-
 self.addEventListener('install', function(event) {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(function(cache) {
-                console.log('📦 Кеширование статики PWA...');
+                console.log('📦 Кеширование PWA статики...');
                 return cache.addAll(urlsToCache);
             })
             .then(function() {
                 console.log('✅ Статика закеширована');
                 return self.skipWaiting();
             })
+            .catch(function(error) {
+                console.warn('⚠️ Ошибка кеширования:', error);
+            })
     );
 });
 
 // === АКТИВАЦИЯ ===
-
 self.addEventListener('activate', function(event) {
     event.waitUntil(
         caches.keys().then(function(cacheNames) {
@@ -58,7 +57,6 @@ self.addEventListener('activate', function(event) {
 });
 
 // === ПЕРЕХВАТ ЗАПРОСОВ ===
-
 self.addEventListener('fetch', function(event) {
     var request = event.request;
 
