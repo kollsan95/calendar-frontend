@@ -1,257 +1,275 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Календарь мастера</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Календарь мастера</title>
 
-  <!-- PWA Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Календарь мастера" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#008080" />
-  <meta name="background-color" content="#FFFDF9" />
-  <meta name="description" content="Приложение для записи на услуги (кератин, ботокс, холодное, полировка)" />
+    <!-- PWA Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#008080" />
+    <meta name="description" content="Приложение для записи на услуги" />
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="/calendar-frontend/manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <!-- Favicon -->
-  <link rel="icon" href="/calendar-frontend/favicon.ico" />
-  <link rel="apple-touch-icon" href="/calendar-frontend/icons/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/calendar-frontend/icons/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="512x512" href="/calendar-frontend/icons/icon-512.png" />
+    <link rel="stylesheet" href="styles.css" />
 
-  <style>
-    /* ===== СТИЛИ ДЛЯ ОБЁРТКИ ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background: #FFFDF9;
-    }
-    #app-frame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
-
-    /* ===== ЛОАДЕР ===== */
-    .loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #FFFDF9;
-      z-index: 1000;
-      font-family: 'Montserrat', 'Inter', sans-serif;
-      color: #008080;
-      transition: opacity 0.5s ease;
-    }
-    .loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .loader .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #E0F2F1;
-      border-top: 4px solid #008080;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    .loader p {
-      margin-top: 20px;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* ===== БАННЕР УСТАНОВКИ ===== */
-    .install-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #008080;
-      color: #FFF;
-      padding: 12px 20px;
-      display: none;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 2000;
-      font-family: 'Montserrat', sans-serif;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-    }
-    .install-banner.show {
-      display: flex;
-    }
-    .install-banner .message {
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .install-banner .btn-install {
-      background: #FFF;
-      color: #008080;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-left: 12px;
-    }
-    .install-banner .btn-close {
-      background: none;
-      border: none;
-      color: #FFF;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 8px;
-    }
-  </style>
+    <!-- Конфигурация -->
+    <script>
+        // === КОНФИГУРАЦИЯ ===
+        // Замените на ваш GAS URL
+        const GAS_URL = 'https://script.google.com/macros/s/ВАШ_GAS_ID/exec';
+    </script>
 </head>
 <body>
 
-  <!-- Лоадер -->
-  <div id="loader" class="loader">
-    <div class="spinner"></div>
-    <p>📅 Загрузка приложения...</p>
-  </div>
+    <div id="app">
+        <!-- Блок авторизации -->
+        <div id="authBlock">
+            <h1>Добро пожаловать</h1>
+            <div class="subtitle">Войдите в систему</div>
 
-  <!-- IFRAME с GAS-приложением -->
-  <iframe id="app-frame" src="{{GAS_URL}}" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="text" id="username" placeholder="Имя пользователя" required />
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Пароль" required />
+                </div>
+                <button type="submit" class="btn" id="loginBtn">Войти</button>
+            </form>
 
-  <!-- Баннер установки PWA -->
-  <div id="installBanner" class="install-banner">
-    <span class="message">📱 Установите приложение на домашний экран</span>
-    <div>
-      <button class="btn-install" id="installBtn">Установить</button>
-      <button class="btn-close" id="closeBanner">✕</button>
-    </div>
-  </div>
+            <div class="loading-text" id="loginLoading">
+                <span class="spinner"></span> Вход...
+            </div>
 
-  <script>
-    // ============================================
-    //  КОНФИГУРАЦИЯ
-    // ============================================
-    // {{GAS_URL}} заменяется GitHub Actions
-    var GAS_URL = '{{GAS_URL}}';
-
-    // === Устанавливаем src IFRAME ===
-    document.getElementById('app-frame').src = GAS_URL;
-
-    // === Регистрация Service Worker ===
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/calendar-frontend/sw.js')
-        .then(function(registration) {
-          console.log('✅ Service Worker зарегистрирован:', registration);
-        })
-        .catch(function(error) {
-          console.warn('⚠️ Service Worker не зарегистрирован:', error);
-        });
-    }
-
-    // === Скрываем лоадер ===
-    var iframe = document.getElementById('app-frame');
-    var loader = document.getElementById('loader');
-
-    iframe.addEventListener('load', function() {
-      setTimeout(function() {
-        loader.classList.add('hidden');
-        setTimeout(function() {
-          loader.style.display = 'none';
-        }, 500);
-      }, 300);
-    });
-
-    // === Обработка ошибок загрузки ===
-    iframe.addEventListener('error', function() {
-      loader.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-          <h3 style="color: #C62828;">Не удалось загрузить приложение</h3>
-          <p style="color: #7B8D8E; margin-top: 8px;">
-            Проверьте подключение к интернету и попробуйте обновить страницу.
-          </p>
-          <button onclick="location.reload()" style="margin-top: 16px; padding: 10px 24px; background: #008080; color: #FFF; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;">
-            Обновить
-          </button>
+            <div id="message" class="message"></div>
         </div>
-      `;
-    });
 
-    // === PWA: Установка на домашний экран ===
-    var deferredPrompt;
+        <!-- Блок приложения (скрыт до авторизации) -->
+        <div id="appBlock" style="display:none;">
+            <div id="appContent"></div>
+        </div>
+    </div>
 
-    window.addEventListener('beforeinstallprompt', function(e) {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBanner').classList.add('show');
-    });
+    <script>
+        // ============================================
+        //  ЗАГРУЗЧИК ПРИЛОЖЕНИЯ
+        // ============================================
 
-    document.getElementById('installBtn').addEventListener('click', function() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function(result) {
-          console.log('✅ Установка:', result.outcome);
-          deferredPrompt = null;
-          document.getElementById('installBanner').classList.remove('show');
-        });
-      }
-    });
+        (function() {
+            'use strict';
 
-    document.getElementById('closeBanner').addEventListener('click', function() {
-      document.getElementById('installBanner').classList.remove('show');
-    });
+            var authBlock = document.getElementById('authBlock');
+            var appBlock = document.getElementById('appBlock');
+            var loginForm = document.getElementById('loginForm');
+            var usernameInput = document.getElementById('username');
+            var passwordInput = document.getElementById('password');
+            var loginBtn = document.getElementById('loginBtn');
+            var messageEl = document.getElementById('message');
+            var loadingEl = document.getElementById('loginLoading');
 
-    window.addEventListener('appinstalled', function() {
-      document.getElementById('installBanner').classList.remove('show');
-      console.log('✅ Приложение установлено');
-    });
+            // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 
-    // === Офлайн-баннер (сообщение в IFRAME) ===
-    window.addEventListener('online', function() {
-      console.log('🟢 Сеть восстановлена');
-      iframe.contentWindow?.postMessage({ type: 'online' }, '*');
-    });
+            function showMessage(text, type) {
+                messageEl.className = 'message ' + type;
+                messageEl.textContent = text;
+                messageEl.style.display = 'block';
+            }
 
-    window.addEventListener('offline', function() {
-      console.log('🔴 Сеть отсутствует');
-      iframe.contentWindow?.postMessage({ type: 'offline' }, '*');
-    });
+            function hideMessage() {
+                messageEl.style.display = 'none';
+                messageEl.className = 'message';
+            }
 
-    // === Обработка уведомлений из GAS ===
-    window.addEventListener('message', function(event) {
-      // Проверяем, что сообщение от нашего GAS-приложения
-      if (event.data && event.data.type === 'notification') {
-        // Показываем системное уведомление через Service Worker
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'showNotification',
-            title: 'Календарь мастера',
-            body: event.data.message,
-            timestamp: event.data.timestamp || Date.now()
-          });
-        }
-      }
-    });
-  </script>
+            function showAuth() {
+                authBlock.style.display = 'block';
+                appBlock.style.display = 'none';
+            }
+
+            function showApp() {
+                authBlock.style.display = 'none';
+                appBlock.style.display = 'block';
+            }
+
+            function saveScripts(scripts) {
+                try {
+                    for (var key in scripts) {
+                        if (scripts.hasOwnProperty(key)) {
+                            localStorage.setItem('script_' + key, scripts[key]);
+                        }
+                    }
+                    localStorage.setItem('scripts_loaded', 'true');
+                    console.log('✅ Скрипты сохранены в localStorage');
+                } catch (e) {
+                    console.error('❌ Ошибка сохранения скриптов:', e);
+                }
+            }
+
+            function loadScriptsFromStorage() {
+                var scripts = {};
+                var keys = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
+                var allLoaded = true;
+
+                for (var i = 0; i < keys.length; i++) {
+                    var key = keys[i];
+                    var content = localStorage.getItem('script_' + key);
+                    if (content) {
+                        scripts[key] = content;
+                    } else {
+                        allLoaded = false;
+                        console.warn('⚠️ Скрипт ' + key + ' не найден в localStorage');
+                    }
+                }
+
+                return allLoaded ? scripts : null;
+            }
+
+            function executeScripts(scripts) {
+                try {
+                    // Выполняем скрипты в правильном порядке
+                    var order = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
+                    for (var i = 0; i < order.length; i++) {
+                        var key = order[i];
+                        if (scripts[key]) {
+                            // Используем eval для выполнения
+                            eval(scripts[key]);
+                            console.log('✅ Выполнен: ' + key);
+                        }
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('❌ Ошибка выполнения скриптов:', e);
+                    return false;
+                }
+            }
+
+            function initApp() {
+                // Проверяем, загружены ли скрипты в localStorage
+                var scripts = loadScriptsFromStorage();
+
+                if (scripts) {
+                    // Скрипты есть — выполняем их
+                    if (executeScripts(scripts)) {
+                        // Вызываем инициализацию приложения
+                        if (typeof window.initApp === 'function') {
+                            window.initApp();
+                        } else {
+                            console.error('❌ initApp не найдена после выполнения скриптов');
+                        }
+                        showApp();
+                        return;
+                    }
+                }
+
+                // Скриптов нет — остаёмся на странице входа
+                showAuth();
+                console.log('🔐 Нет скриптов в localStorage, показываем страницу входа');
+            }
+
+            // === АВТОРИЗАЦИЯ ===
+
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                hideMessage();
+                loadingEl.classList.remove('show');
+                loginBtn.disabled = true;
+
+                var username = usernameInput.value.trim();
+                var password = passwordInput.value.trim();
+
+                if (!username || !password) {
+                    showMessage('Заполните все поля', 'error');
+                    loginBtn.disabled = false;
+                    return;
+                }
+
+                loadingEl.classList.add('show');
+
+                // === ЗАПРОС К GAS ===
+                var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
+
+                fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Ошибка сервера: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    loadingEl.classList.remove('show');
+                    loginBtn.disabled = false;
+
+                    if (data.status === 'ok') {
+                        // === УСПЕШНЫЙ ВХОД ===
+                        // Сохраняем токен
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('userRole', data.user.role || 'user');
+
+                        // Сохраняем скрипты
+                        if (data.scripts) {
+                            saveScripts(data.scripts);
+                        } else {
+                            console.warn('⚠️ Скрипты не получены от сервера');
+                            showMessage('Ошибка: скрипты не получены', 'error');
+                            return;
+                        }
+
+                        // Показываем приложение
+                        showMessage('✅ Вход выполнен!', 'success');
+
+                        // Инициализируем приложение
+                        initApp();
+
+                    } else {
+                        showMessage(data.message || 'Неверное имя пользователя или пароль', 'error');
+                    }
+                })
+                .catch(function(error) {
+                    loadingEl.classList.remove('show');
+                    loginBtn.disabled = false;
+                    console.error('❌ Ошибка:', error);
+                    showMessage('Ошибка соединения: ' + error.message, 'error');
+                });
+            });
+
+            // === ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ ===
+
+            function checkAuth() {
+                var token = localStorage.getItem('authToken');
+                if (token) {
+                    // Пытаемся загрузить приложение
+                    initApp();
+                } else {
+                    showAuth();
+                }
+            }
+
+            // === РЕГИСТРАЦИЯ SERVICE WORKER ===
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker зарегистрирован');
+                    })
+                    .catch(function(error) {
+                        console.warn('⚠️ Service Worker не зарегистрирован:', error);
+                    });
+            }
+
+            // === ЗАПУСК ===
+            checkAuth();
+
+            console.log('✅ Страница загружена');
+
+        })();
+    </script>
 
 </body>
 </html>

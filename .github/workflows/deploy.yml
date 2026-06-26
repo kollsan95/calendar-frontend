@@ -1,45 +1,41 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - master
+    push:
+        branches:
+            - master
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
+        permissions:
+            contents: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Inject GAS_URL into files
-        env:
-          GAS_URL: ${{ secrets.GAS_URL }}
-        run: |
-          if [ -z "$GAS_URL" ]; then
-            echo "::error::Secret GAS_URL is not set"
-            exit 1
-          fi
+            - name: Inject GAS_URL into index.html
+              env:
+                  GAS_URL: ${{ secrets.GAS_URL }}
+              run: |
+                  if [ -z "$GAS_URL" ]; then
+                      echo "::error::Secret GAS_URL is not set"
+                      exit 1
+                  fi
 
-          echo "🔑 GAS_URL: $GAS_URL"
+                  echo "🔑 GAS_URL: $GAS_URL"
+                  sed -i "s|ВАШ_GAS_ID/exec|$GAS_URL|g" index.html
+                  echo "✅ GAS_URL injected"
 
-          # Заменяем во всех файлах
-          sed -i "s|{{GAS_URL}}|$GAS_URL|g" index.html
-          sed -i "s|{{GAS_URL}}|$GAS_URL|g" sw.js
-
-          echo "✅ GAS_URL injected"
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
-          publish_branch: gh-pages
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy PWA with GAS_URL'
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./
+                  publish_branch: gh-pages
+                  force_orphan: true
+                  user_name: 'github-actions[bot]'
+                  user_email: 'github-actions[bot]@users.noreply.github.com'
+                  commit_message: 'Deploy with GAS_URL'
