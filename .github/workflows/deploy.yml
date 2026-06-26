@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Inject GAS_URL into index.html
+      - name: Inject GAS_URL into files
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
         run: |
@@ -26,10 +26,12 @@ jobs:
           fi
 
           echo "🔑 GAS_URL: $GAS_URL"
+
+          # Заменяем во всех файлах
           sed -i "s|{{GAS_URL}}|$GAS_URL|g" index.html
-          
-          echo "=== Проверка index.html после замены ==="
-          grep -o "const GAS_URL = '[^']*'" index.html || echo "⚠️ Не удалось найти GAS_URL в index.html"
+          sed -i "s|{{GAS_URL}}|$GAS_URL|g" sw.js
+
+          echo "✅ GAS_URL injected"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -40,4 +42,4 @@ jobs:
           force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy with GAS_URL'
+          commit_message: 'Deploy PWA with GAS_URL'
