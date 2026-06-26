@@ -1,75 +1,152 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Календарь мастера</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Календарь мастера</title>
 
-  <!-- PWA Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#008080" />
-  <meta name="description" content="Приложение для записи на услуги" />
+    <!-- PWA Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#008080" />
+    <meta name="description" content="Приложение для записи на услуги" />
 
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background: #FFFDF9;
-      color: #008080;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      padding: 20px;
-    }
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #E0F2F1;
-      border-top: 4px solid #008080;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 20px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    p { font-size: 14px; color: #7B8D8E; }
-    a { color: #008080; text-decoration: none; font-weight: 600; }
-  </style>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #FFFDF9;
+            color: #008080;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #E0F2F1;
+            border-top: 4px solid #008080;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        p {
+            font-size: 14px;
+            color: #7B8D8E;
+        }
+        #app-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
-  <div class="spinner"></div>
-  <p>Загрузка приложения...</p>
 
-  <script>
-    // === КОНФИГУРАЦИЯ ===
-    var GAS_URL = '{{GAS_URL}}';
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Загрузка приложения...</p>
+    </div>
 
-    // === РЕГИСТРАЦИЯ SERVICE WORKER ===
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(function() { console.log('✅ Service Worker зарегистрирован'); })
-        .catch(function(err) { console.warn('⚠️ Service Worker не зарегистрирован:', err); });
-    }
+    <div id="app-container"></div>
 
-    // === ПРОВЕРКА ТОКЕНА ===
-    var token = localStorage.getItem('authToken');
-    
-    if (token) {
-      // Если токен есть — загружаем App.html с токеном
-      window.location.href = GAS_URL + '?action=app&token=' + encodeURIComponent(token);
-    } else {
-      // Если нет — загружаем Login.html
-      window.location.href = GAS_URL;
-    }
-  </script>
+    <script>
+        // === КОНФИГУРАЦИЯ ===
+        // {{GAS_URL}} заменяется GitHub Actions
+        var GAS_URL = '{{GAS_URL}}';
+
+        // === РЕГИСТРАЦИЯ SERVICE WORKER ===
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function() { console.log('✅ Service Worker зарегистрирован'); })
+                .catch(function(err) { console.warn('⚠️ Service Worker не зарегистрирован:', err); });
+        }
+
+        // === ЗАГРУЗКА ПРИЛОЖЕНИЯ ===
+        function loadApp() {
+            var loader = document.getElementById('loader');
+            var container = document.getElementById('app-container');
+
+            // Определяем, какую страницу загружать
+            var token = localStorage.getItem('authToken');
+            var url = GAS_URL;
+
+            if (token) {
+                // Если есть токен — загружаем App.html
+                url = GAS_URL + '?action=app&token=' + encodeURIComponent(token);
+            }
+
+            console.log('📥 Загрузка:', url);
+
+            fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'text/html' }
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(function(html) {
+                // Скрываем лоадер
+                loader.style.display = 'none';
+                // Вставляем HTML
+                container.innerHTML = html;
+
+                // Запускаем скрипты из полученного HTML
+                var scripts = container.querySelectorAll('script');
+                scripts.forEach(function(script) {
+                    var newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.head.appendChild(newScript);
+                });
+            })
+            .catch(function(error) {
+                console.error('❌ Ошибка:', error);
+                loader.innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+                        <h3 style="color:#C62828;">Не удалось загрузить приложение</h3>
+                        <p style="color:#7B8D8E;margin-top:8px;">${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#008080;color:#FFF;border:none;border-radius:12px;font-size:16px;cursor:pointer;">Обновить</button>
+                    </div>
+                `;
+            });
+        }
+
+        // === ЗАПУСК ===
+        if (GAS_URL && GAS_URL !== '{{GAS_URL}}') {
+            loadApp();
+        } else {
+            document.getElementById('loader').innerHTML = `
+                <div style="text-align:center;padding:20px;">
+                    <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+                    <h3 style="color:#C62828;">Ошибка конфигурации</h3>
+                    <p style="color:#7B8D8E;margin-top:8px;">GAS_URL не подставлен</p>
+                </div>
+            `;
+        }
+    </script>
+
 </body>
 </html>
