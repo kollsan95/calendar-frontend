@@ -145,12 +145,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        #calendarBlock {
-            display: none;
-        }
-        .hidden {
-            display: none !important;
-        }
         #appContent {
             display: none;
         }
@@ -241,6 +235,11 @@
                 if (!response.ok) {
                     throw new Error('Ошибка сервера: ' + response.status);
                 }
+                // Проверяем, не вернулся ли HTML вместо JSON
+                var contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    throw new Error('Сервер вернул HTML вместо JSON. Проверьте GAS URL.');
+                }
                 return response.json();
             })
             .then(function(data) {
@@ -319,7 +318,6 @@
 
             // === ЗАПУСК ПРИЛОЖЕНИЯ ===
             if (typeof window.initApp === 'function') {
-                // Скрываем форму входа
                 authBlock.style.display = 'none';
                 appContent.style.display = 'block';
                 window.initApp();
