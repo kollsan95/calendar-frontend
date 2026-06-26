@@ -1,96 +1,75 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Календарь мастера</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Календарь мастера</title>
 
-    <!-- PWA Meta -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#008080" />
-    <meta name="description" content="Приложение для записи на услуги" />
+  <!-- PWA Meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#008080" />
+  <meta name="description" content="Приложение для записи на услуги" />
 
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" href="favicon.ico" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: #FFFDF9;
-            color: #008080;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 20px;
-        }
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #E0F2F1;
-            border-top: 4px solid #008080;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        p {
-            font-size: 14px;
-            color: #7B8D8E;
-        }
-        a {
-            color: #008080;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #FFFDF9;
+      color: #008080;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #E0F2F1;
+      border-top: 4px solid #008080;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    p { font-size: 14px; color: #7B8D8E; }
+    a { color: #008080; text-decoration: none; font-weight: 600; }
+  </style>
 </head>
 <body>
-    <div class="spinner"></div>
-    <p>Перенаправление на <a href="{{GAS_URL}}">приложение</a>...</p>
+  <div class="spinner"></div>
+  <p>Загрузка приложения...</p>
 
-    <script>
-        // === КОНФИГУРАЦИЯ ===
-        // {{GAS_URL}} заменяется GitHub Actions
-        var GAS_URL = '{{GAS_URL}}';
+  <script>
+    // === КОНФИГУРАЦИЯ ===
+    var GAS_URL = '{{GAS_URL}}';
 
-        // === РЕГИСТРАЦИЯ SERVICE WORKER ===
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(function() {
-                    console.log('✅ Service Worker зарегистрирован');
-                })
-                .catch(function(err) {
-                    console.warn('⚠️ Service Worker не зарегистрирован:', err);
-                });
-        }
+    // === РЕГИСТРАЦИЯ SERVICE WORKER ===
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(function() { console.log('✅ Service Worker зарегистрирован'); })
+        .catch(function(err) { console.warn('⚠️ Service Worker не зарегистрирован:', err); });
+    }
 
-        // === ПЕРЕНАПРАВЛЕНИЕ НА GAS ===
-        if (GAS_URL && GAS_URL !== '{{GAS_URL}}') {
-            // Перенаправляем сразу
-            window.location.href = GAS_URL;
-        } else {
-            // Если GAS_URL не подставлен — показываем ссылку
-            document.querySelector('p').innerHTML = '⚠️ Ошибка конфигурации. <a href="' + GAS_URL + '">Перейти вручную</a>';
-        }
-    </script>
+    // === ПРОВЕРКА ТОКЕНА ===
+    var token = localStorage.getItem('authToken');
+    
+    if (token) {
+      // Если токен есть — загружаем App.html с токеном
+      window.location.href = GAS_URL + '?action=app&token=' + encodeURIComponent(token);
+    } else {
+      // Если нет — загружаем Login.html
+      window.location.href = GAS_URL;
+    }
+  </script>
 </body>
 </html>
