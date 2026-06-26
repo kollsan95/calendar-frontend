@@ -183,7 +183,6 @@
 
     <script>
         // === КОНФИГУРАЦИЯ ===
-        // {{GAS_URL}} заменяется GitHub Actions
         var GAS_URL = '{{GAS_URL}}';
 
         // === РЕГИСТРАЦИЯ SERVICE WORKER ===
@@ -224,107 +223,36 @@
 
             loadingEl.classList.add('show');
 
-            // === ЗАПРОС К GAS REST API ===
+            // === ЗАПРОС К GAS ===
             var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
 
-            fetch(url, {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            })
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Ошибка сервера: ' + response.status);
-                }
-                // Проверяем, не вернулся ли HTML вместо JSON
-                var contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('text/html')) {
-                    throw new Error('Сервер вернул HTML вместо JSON. Проверьте GAS URL.');
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                loadingEl.classList.remove('show');
-
-                if (data.status === 'ok') {
-                    // === СОХРАНЯЕМ ТОКЕН И СКРИПТЫ ===
-                    localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('userRole', data.user.role || 'user');
-
-                    if (data.scripts) {
-                        for (var key in data.scripts) {
-                            if (data.scripts.hasOwnProperty(key)) {
-                                localStorage.setItem('script_' + key, data.scripts[key]);
-                            }
+            fetch(url)
+                .then(function(response) {
+                    return response.text();
+                })
+                .then(function(text) {
+                    loadingEl.classList.remove('show');
+                    
+                    // Проверяем, не вернулся ли JSON с ошибкой
+                    try {
+                        var data = JSON.parse(text);
+                        if (data.status === 'error') {
+                            showMessage(data.message || 'Ошибка входа', 'error');
+                            return;
                         }
-                        localStorage.setItem('scripts_loaded', 'true');
-                    }
-
-                    showMessage('✅ Вход выполнен!', 'success');
-
-                    // === ЗАГРУЖАЕМ ПРИЛОЖЕНИЕ ===
-                    loadApp();
-
-                } else {
-                    showMessage(data.message || 'Неверный логин или пароль.', 'error');
-                }
-            })
-            .catch(function(error) {
-                loadingEl.classList.remove('show');
-                console.error('❌ Ошибка:', error);
-                showMessage('Ошибка соединения: ' + error.message, 'error');
-            });
+                    } catch(e) {}
+                    
+                    // Если всё ок — заменяем страницу на полученный HTML
+                    document.open();
+                    document.write(text);
+                    document.close();
+                })
+                .catch(function(error) {
+                    loadingEl.classList.remove('show');
+                    console.error('❌ Ошибка:', error);
+                    showMessage('Ошибка соединения: ' + error.message, 'error');
+                });
         });
-
-        // === ЗАГРУЗКА ПРИЛОЖЕНИЯ ИЗ localStorage ===
-        function loadApp() {
-            var authBlock = document.getElementById('authBlock');
-            var appContent = document.getElementById('appContent');
-
-            var scripts = {};
-            var keys = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
-            var allLoaded = true;
-
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                var content = localStorage.getItem('script_' + key);
-                if (content) {
-                    scripts[key] = content;
-                } else {
-                    allLoaded = false;
-                    console.warn('⚠️ Скрипт ' + key + ' не найден');
-                }
-            }
-
-            if (!allLoaded) {
-                showMessage('Ошибка: скрипты не загружены. Войдите заново.', 'error');
-                return;
-            }
-
-            // === ВЫПОЛНЯЕМ СКРИПТЫ ===
-            try {
-                var order = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
-                for (var i = 0; i < order.length; i++) {
-                    var key = order[i];
-                    if (scripts[key]) {
-                        eval(scripts[key]);
-                        console.log('✅ Выполнен: ' + key);
-                    }
-                }
-            } catch (e) {
-                console.error('❌ Ошибка выполнения скриптов:', e);
-                showMessage('Ошибка загрузки приложения.', 'error');
-                return;
-            }
-
-            // === ЗАПУСК ПРИЛОЖЕНИЯ ===
-            if (typeof window.initApp === 'function') {
-                authBlock.style.display = 'none';
-                appContent.style.display = 'block';
-                window.initApp();
-            } else {
-                showMessage('Ошибка: initApp не найдена.', 'error');
-            }
-        }
 
         // === ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ ===
         var token = localStorage.getItem('authToken');
@@ -332,7 +260,8 @@
 
         if (token && scriptsLoaded === 'true') {
             console.log('🔑 Токен найден, загружаем приложение');
-            loadApp();
+            // Загружаем App.html
+            window.location.href = GAS_URL + '?action=app&token=' + encodeURIComponent(token);
         } else {
             console.log('🔐 Нет токена, показываем форму входа');
         }
