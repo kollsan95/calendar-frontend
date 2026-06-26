@@ -22,48 +22,170 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', 'Inter', sans-serif;
             background: #FFFDF9;
-            color: #008080;
+            color: #37474F;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
             padding: 20px;
         }
+        #app {
+            max-width: 480px;
+            width: 100%;
+            background: #FFFDF9;
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+        h1 {
+            font-size: 24px;
+            color: #008080;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #7B8D8E;
+            margin-bottom: 24px;
+            font-weight: 400;
+            border-left: 3px solid #008080;
+            padding-left: 12px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #37474F;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #E0F2F1;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            outline: none;
+            background: #FFFFFF;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus {
+            border-color: #008080;
+            box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.08);
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #008080;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:hover {
+            background: #006666;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .message {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            font-weight: 500;
+        }
+        .message.error {
+            display: block;
+            background: #FFEBEE;
+            color: #C62828;
+            border-left: 4px solid #C62828;
+        }
+        .message.success {
+            display: block;
+            background: #E0F2F1;
+            color: #006666;
+            border-left: 4px solid #008080;
+        }
+        .loading-text {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px;
+            color: #008080;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .loading-text.show {
+            display: flex;
+        }
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #E0F2F1;
-            border-top: 4px solid #008080;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #E0F2F1;
+            border-top: 3px solid #008080;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
+            margin-right: 10px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        p {
-            font-size: 14px;
-            color: #7B8D8E;
+        #calendarBlock {
+            display: none;
         }
-        #app-container {
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
+        .hidden {
+            display: none !important;
+        }
+        #appContent {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p>Загрузка приложения...</p>
-    </div>
+    <div id="app">
+        <!-- Блок авторизации -->
+        <div id="authBlock">
+            <h1>Добро пожаловать</h1>
+            <div class="subtitle">Войдите в систему</div>
 
-    <div id="app-container"></div>
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" id="username" placeholder="Введите имя" required autocomplete="username" />
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" placeholder="Введите пароль" required autocomplete="current-password" />
+                </div>
+                <button type="submit" class="btn" id="loginBtn">Войти</button>
+            </form>
+
+            <div class="loading-text" id="loginLoading">
+                <span class="spinner"></span> Вход в систему...
+            </div>
+
+            <div id="message" class="message"></div>
+        </div>
+
+        <!-- Контейнер для приложения -->
+        <div id="appContent"></div>
+    </div>
 
     <script>
         // === КОНФИГУРАЦИЯ ===
@@ -77,75 +199,147 @@
                 .catch(function(err) { console.warn('⚠️ Service Worker не зарегистрирован:', err); });
         }
 
-        // === ЗАГРУЗКА ПРИЛОЖЕНИЯ ===
-        function loadApp() {
-            var loader = document.getElementById('loader');
-            var container = document.getElementById('app-container');
+        // === ФУНКЦИЯ ПОКАЗА СООБЩЕНИЙ ===
+        function showMessage(text, type) {
+            var messageEl = document.getElementById('message');
+            messageEl.className = 'message ' + type;
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+        }
 
-            // Определяем, какую страницу загружать
-            var token = localStorage.getItem('authToken');
-            var url = GAS_URL;
+        function hideMessage() {
+            var messageEl = document.getElementById('message');
+            messageEl.style.display = 'none';
+            messageEl.className = 'message';
+        }
 
-            if (token) {
-                // Если есть токен — загружаем App.html
-                url = GAS_URL + '?action=app&token=' + encodeURIComponent(token);
+        // === АВТОРИЗАЦИЯ ===
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            hideMessage();
+            var loadingEl = document.getElementById('loginLoading');
+            loadingEl.classList.remove('show');
+
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                showMessage('Заполните все поля.', 'error');
+                return;
             }
 
-            console.log('📥 Загрузка:', url);
+            loadingEl.classList.add('show');
+
+            // === ЗАПРОС К GAS REST API ===
+            var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
 
             fetch(url, {
                 method: 'GET',
-                headers: { 'Accept': 'text/html' }
+                headers: { 'Accept': 'application/json' }
             })
             .then(function(response) {
                 if (!response.ok) {
-                    throw new Error('Ошибка загрузки: ' + response.status);
+                    throw new Error('Ошибка сервера: ' + response.status);
                 }
-                return response.text();
+                return response.json();
             })
-            .then(function(html) {
-                // Скрываем лоадер
-                loader.style.display = 'none';
-                // Вставляем HTML
-                container.innerHTML = html;
+            .then(function(data) {
+                loadingEl.classList.remove('show');
 
-                // Запускаем скрипты из полученного HTML
-                var scripts = container.querySelectorAll('script');
-                scripts.forEach(function(script) {
-                    var newScript = document.createElement('script');
-                    if (script.src) {
-                        newScript.src = script.src;
-                    } else {
-                        newScript.textContent = script.textContent;
+                if (data.status === 'ok') {
+                    // === СОХРАНЯЕМ ТОКЕН И СКРИПТЫ ===
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userRole', data.user.role || 'user');
+
+                    if (data.scripts) {
+                        for (var key in data.scripts) {
+                            if (data.scripts.hasOwnProperty(key)) {
+                                localStorage.setItem('script_' + key, data.scripts[key]);
+                            }
+                        }
+                        localStorage.setItem('scripts_loaded', 'true');
                     }
-                    document.head.appendChild(newScript);
-                });
+
+                    showMessage('✅ Вход выполнен!', 'success');
+
+                    // === ЗАГРУЖАЕМ ПРИЛОЖЕНИЕ ===
+                    loadApp();
+
+                } else {
+                    showMessage(data.message || 'Неверный логин или пароль.', 'error');
+                }
             })
             .catch(function(error) {
+                loadingEl.classList.remove('show');
                 console.error('❌ Ошибка:', error);
-                loader.innerHTML = `
-                    <div style="text-align:center;padding:20px;">
-                        <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
-                        <h3 style="color:#C62828;">Не удалось загрузить приложение</h3>
-                        <p style="color:#7B8D8E;margin-top:8px;">${error.message}</p>
-                        <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#008080;color:#FFF;border:none;border-radius:12px;font-size:16px;cursor:pointer;">Обновить</button>
-                    </div>
-                `;
+                showMessage('Ошибка соединения: ' + error.message, 'error');
             });
+        });
+
+        // === ЗАГРУЗКА ПРИЛОЖЕНИЯ ИЗ localStorage ===
+        function loadApp() {
+            var authBlock = document.getElementById('authBlock');
+            var appContent = document.getElementById('appContent');
+
+            var scripts = {};
+            var keys = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
+            var allLoaded = true;
+
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var content = localStorage.getItem('script_' + key);
+                if (content) {
+                    scripts[key] = content;
+                } else {
+                    allLoaded = false;
+                    console.warn('⚠️ Скрипт ' + key + ' не найден');
+                }
+            }
+
+            if (!allLoaded) {
+                showMessage('Ошибка: скрипты не загружены. Войдите заново.', 'error');
+                return;
+            }
+
+            // === ВЫПОЛНЯЕМ СКРИПТЫ ===
+            try {
+                var order = ['config', 'cache', 'api', 'auth', 'canvas', 'calendar', 'modal', 'detail', 'notifications', 'filters', 'windows', 'main'];
+                for (var i = 0; i < order.length; i++) {
+                    var key = order[i];
+                    if (scripts[key]) {
+                        eval(scripts[key]);
+                        console.log('✅ Выполнен: ' + key);
+                    }
+                }
+            } catch (e) {
+                console.error('❌ Ошибка выполнения скриптов:', e);
+                showMessage('Ошибка загрузки приложения.', 'error');
+                return;
+            }
+
+            // === ЗАПУСК ПРИЛОЖЕНИЯ ===
+            if (typeof window.initApp === 'function') {
+                // Скрываем форму входа
+                authBlock.style.display = 'none';
+                appContent.style.display = 'block';
+                window.initApp();
+            } else {
+                showMessage('Ошибка: initApp не найдена.', 'error');
+            }
         }
 
-        // === ЗАПУСК ===
-        if (GAS_URL && GAS_URL !== '{{GAS_URL}}') {
+        // === ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ ===
+        var token = localStorage.getItem('authToken');
+        var scriptsLoaded = localStorage.getItem('scripts_loaded');
+
+        if (token && scriptsLoaded === 'true') {
+            console.log('🔑 Токен найден, загружаем приложение');
             loadApp();
         } else {
-            document.getElementById('loader').innerHTML = `
-                <div style="text-align:center;padding:20px;">
-                    <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
-                    <h3 style="color:#C62828;">Ошибка конфигурации</h3>
-                    <p style="color:#7B8D8E;margin-top:8px;">GAS_URL не подставлен</p>
-                </div>
-            `;
+            console.log('🔐 Нет токена, показываем форму входа');
         }
+
+        console.log('✅ Страница загружена');
     </script>
 
 </body>
