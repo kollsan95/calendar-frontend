@@ -16,11 +16,6 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
     <link rel="stylesheet" href="styles.css" />
-
-    <!-- Конфигурация ({{GAS_URL}} заменяется GitHub Actions) -->
-    <script>
-        const GAS_URL = '{{GAS_URL}}';
-    </script>
 </head>
 <body>
 
@@ -53,9 +48,10 @@
         </div>
     </div>
 
+    <script src="https://apis.google.com/js/api.js"></script>
     <script>
         // ============================================
-        //  ЗАГРУЗЧИК ПРИЛОЖЕНИЯ
+        //  ЗАГРУЗЧИК ПРИЛОЖЕНИЯ (google.script.run)
         // ============================================
 
         (function() {
@@ -160,7 +156,7 @@
                 console.log('🔐 Нет скриптов в localStorage, показываем страницу входа');
             }
 
-            // === АВТОРИЗАЦИЯ ===
+            // === АВТОРИЗАЦИЯ (google.script.run) ===
 
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -179,48 +175,47 @@
 
                 loadingEl.classList.add('show');
 
-                // === ЗАПРОС К GAS ===
-                var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
-
-                fetch(url, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                })
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('Ошибка сервера: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(function(data) {
+                // === ВЫЗОВ ЧЕРЕЗ google.script.run ===
+                if (typeof google === 'undefined' || !google.script) {
+                    showMessage('Google API не загружен. Проверьте подключение к интернету.', 'error');
                     loadingEl.classList.remove('show');
                     loginBtn.disabled = false;
+                    return;
+                }
 
-                    if (data.status === 'ok') {
-                        localStorage.setItem('authToken', data.token);
-                        localStorage.setItem('userRole', data.user.role || 'user');
+                google.script.run
+                    .withSuccessHandler(function(data) {
+                        loadingEl.classList.remove('show');
+                        loginBtn.disabled = false;
 
-                        if (data.scripts) {
-                            saveScripts(data.scripts);
+                        console.log('✅ Успешный ответ:', data);
+
+                        if (data.status === 'ok') {
+                            localStorage.setItem('authToken', data.token);
+                            localStorage.setItem('userRole', data.user.role || 'user');
+
+                            if (data.scripts) {
+                                saveScripts(data.scripts);
+                            } else {
+                                console.warn('⚠️ Скрипты не получены от сервера');
+                                showMessage('Ошибка: скрипты не получены', 'error');
+                                return;
+                            }
+
+                            showMessage('✅ Вход выполнен!', 'success');
+                            initApp();
+
                         } else {
-                            console.warn('⚠️ Скрипты не получены от сервера');
-                            showMessage('Ошибка: скрипты не получены', 'error');
-                            return;
+                            showMessage(data.message || 'Неверное имя пользователя или пароль', 'error');
                         }
-
-                        showMessage('✅ Вход выполнен!', 'success');
-                        initApp();
-
-                    } else {
-                        showMessage(data.message || 'Неверное имя пользователя или пароль', 'error');
-                    }
-                })
-                .catch(function(error) {
-                    loadingEl.classList.remove('show');
-                    loginBtn.disabled = false;
-                    console.error('❌ Ошибка:', error);
-                    showMessage('Ошибка соединения: ' + error.message, 'error');
-                });
+                    })
+                    .withFailureHandler(function(error) {
+                        loadingEl.classList.remove('show');
+                        loginBtn.disabled = false;
+                        console.error('❌ Ошибка google.script.run:', error);
+                        showMessage('Ошибка соединения: ' + error.message, 'error');
+                    })
+                    .login({ username: username, password: password });
             });
 
             function checkAuth() {
