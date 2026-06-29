@@ -34,13 +34,39 @@
     <p>📅 Загрузка приложения...</p>
   </div>
 
+  <!-- Форма входа (показывается если нет токена) -->
+  <div id="loginContainer">
+    <div class="login-box">
+      <h1>Добро пожаловать</h1>
+      <div class="subtitle">Войдите в систему</div>
+
+      <form id="loginForm" autocomplete="off">
+        <div class="form-group">
+          <label for="username">Имя пользователя</label>
+          <input type="text" id="username" placeholder="Введите имя" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Пароль</label>
+          <input type="password" id="password" placeholder="Введите пароль" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn" id="loginBtn">Войти</button>
+      </form>
+
+      <div class="loading-text" id="loginLoading">
+        <span class="spinner"></span> Вход в систему...
+      </div>
+
+      <div id="loginMessage" class="message"></div>
+    </div>
+  </div>
+
   <!-- IFRAME с GAS-приложением -->
   <iframe id="app-frame" src="{{GAS_URL}}" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
 
   <!-- Баннер установки PWA -->
   <div id="installBanner" class="install-banner">
     <span class="message">📱 Установите приложение на домашний экран</span>
-    <div>
+    <div class="actions">
       <button class="btn-install" id="installBtn">Установить</button>
       <button class="btn-close" id="closeBanner">✕</button>
     </div>
@@ -52,10 +78,169 @@
     // ============================================
     var GAS_URL = '{{GAS_URL}}';
 
-    // === Устанавливаем src IFRAME ===
-    document.getElementById('app-frame').src = GAS_URL;
+    // ============================================
+    //  ФУНКЦИИ ДЛЯ РАБОТЫ С ФОРМОЙ ВХОДА
+    // ============================================
+    function showLoginMessage(text, type) {
+      var el = document.getElementById('loginMessage');
+      el.className = 'message ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+    }
 
-    // === Регистрация Service Worker ===
+    function hideLoginMessage() {
+      var el = document.getElementById('loginMessage');
+      el.style.display = 'none';
+      el.className = 'message';
+    }
+
+    function showLoginForm() {
+      document.getElementById('loginContainer').classList.add('show');
+      document.getElementById('loader').style.display = 'none';
+    }
+
+    function hideLoginForm() {
+      document.getElementById('loginContainer').classList.remove('show');
+    }
+
+    // ============================================
+    //  ПРОВЕРКА ТОКЕНА И ЗАГРУЗКА ПРИЛОЖЕНИЯ
+    // ============================================
+    (function checkAuth() {
+      var token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        console.log('🔐 Нет токена, показываем форму входа');
+        showLoginForm();
+        return;
+      }
+      
+      console.log('🔑 Токен есть, загружаем приложение...');
+      
+      // Отправляем токен через fetch с Authorization header
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'app' })
+      })
+      .then(function(response) { return response.text(); })
+      .then(function(html) {
+        // Проверяем, не вернулась ли ошибка
+        try {
+          var data = JSON.parse(html);
+          if (data.status === 'error') {
+            // Токен невалиден
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            showLoginForm();
+            showLoginMessage(data.message || 'Сессия истекла. Войдите заново.', 'error');
+            return;
+          }
+        } catch(e) {
+          // Это HTML, а не JSON — всё хорошо
+        }
+        
+        // Скрываем форму входа и лоадер
+        hideLoginForm();
+        document.getElementById('loader').classList.add('hidden');
+        setTimeout(function() {
+          document.getElementById('loader').style.display = 'none';
+        }, 500);
+        
+        // Загружаем App.html в iframe
+        var iframe = document.getElementById('app-frame');
+        iframe.srcdoc = html;
+      })
+      .catch(function(error) {
+        console.error('❌ Ошибка загрузки приложения:', error);
+        showLoginForm();
+        showLoginMessage('Ошибка загрузки приложения. Попробуйте обновить страницу.', 'error');
+      });
+    })();
+
+    // ============================================
+    //  ОБРАБОТКА ВХОДА
+    // ============================================
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      hideLoginMessage();
+      
+      var loadingEl = document.getElementById('loginLoading');
+      var loginBtn = document.getElementById('loginBtn');
+      
+      loadingEl.classList.remove('show');
+
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        showLoginMessage('Заполните все поля.', 'error');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Вход...';
+      loadingEl.classList.add('show');
+
+      // Отправляем запрос на логин
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'login',
+          username: username,
+          password: password
+        })
+      })
+      .then(function(response) { return response.text(); })
+      .then(function(text) {
+        loadingEl.classList.remove('show');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Войти';
+
+        try {
+          var data = JSON.parse(text);
+          if (data.status === 'error') {
+            showLoginMessage(data.message || 'Ошибка входа', 'error');
+            return;
+          }
+        } catch(e) {}
+
+        // Сохраняем токен
+        localStorage.setItem('authToken', username);
+        localStorage.setItem('userRole', 'user');
+        localStorage.setItem('username', username);
+        localStorage.setItem('scripts_loaded', 'true');
+
+        // Скрываем форму входа и лоадер
+        hideLoginForm();
+        document.getElementById('loader').classList.add('hidden');
+        setTimeout(function() {
+          document.getElementById('loader').style.display = 'none';
+        }, 500);
+
+        // Загружаем App.html в iframe
+        var iframe = document.getElementById('app-frame');
+        iframe.srcdoc = text;
+      })
+      .catch(function(error) {
+        loadingEl.classList.remove('show');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Войти';
+        console.error('❌ Ошибка:', error);
+        showLoginMessage('Ошибка соединения: ' + error.message, 'error');
+      });
+    });
+
+    // ============================================
+    //  РЕГИСТРАЦИЯ SERVICE WORKER
+    // ============================================
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/calendar-frontend/sw.js')
         .then(function(registration) {
@@ -66,44 +251,9 @@
         });
     }
 
-    // === Скрываем лоадер ===
-    var iframe = document.getElementById('app-frame');
-    var loader = document.getElementById('loader');
-
-    iframe.addEventListener('load', function() {
-      setTimeout(function() {
-        loader.classList.add('hidden');
-        setTimeout(function() {
-          loader.style.display = 'none';
-        }, 500);
-      }, 300);
-    });
-
-    // Если iframe уже загружен (кэш)
-    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-      loader.classList.add('hidden');
-      setTimeout(function() {
-        loader.style.display = 'none';
-      }, 500);
-    }
-
-    // === Обработка ошибок загрузки ===
-    iframe.addEventListener('error', function() {
-      loader.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-          <h3 style="color: #C62828;">Не удалось загрузить приложение</h3>
-          <p style="color: #7B8D8E; margin-top: 8px;">
-            Проверьте подключение к интернету и попробуйте обновить страницу.
-          </p>
-          <button onclick="location.reload()" style="margin-top: 16px; padding: 10px 24px; background: #008080; color: #FFF; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;">
-            Обновить
-          </button>
-        </div>
-      `;
-    });
-
-    // === PWA: Установка на домашний экран ===
+    // ============================================
+    //  PWA: БАННЕР УСТАНОВКИ
+    // ============================================
     var deferredPrompt;
 
     window.addEventListener('beforeinstallprompt', function(e) {
@@ -132,7 +282,11 @@
       console.log('✅ Приложение установлено');
     });
 
-    // === Офлайн-сообщение в IFRAME ===
+    // ============================================
+    //  ОФЛАЙН-СООБЩЕНИЕ В IFRAME
+    // ============================================
+    var iframe = document.getElementById('app-frame');
+
     window.addEventListener('online', function() {
       console.log('🟢 Сеть восстановлена');
       iframe.contentWindow?.postMessage({ type: 'online' }, '*');
@@ -143,7 +297,9 @@
       iframe.contentWindow?.postMessage({ type: 'offline' }, '*');
     });
 
-    // === Обработка уведомлений из GAS ===
+    // ============================================
+    //  ОБРАБОТКА УВЕДОМЛЕНИЙ ИЗ GAS
+    // ============================================
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'notification') {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {

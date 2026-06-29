@@ -142,24 +142,153 @@ html, body {
   transform: scale(0.9);
 }
 
-/* ===== АДАПТАЦИЯ ДЛЯ РАЗНЫХ ЭКРАНОВ ===== */
-
-/* Планшеты и маленькие ноутбуки */
-@media (max-width: 768px) {
-  .install-banner {
-    padding: 10px 14px;
-  }
-  .install-banner .message {
-    font-size: 13px;
-    min-width: 100px;
-  }
-  .install-banner .btn-install {
-    font-size: 13px;
-    padding: 6px 14px;
-  }
+/* ===== ФОРМА ВХОДА ===== */
+#loginContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #FFFDF9;
+  z-index: 500;
+  padding: 20px;
 }
 
-/* Телефоны */
+#loginContainer.show {
+  display: flex;
+}
+
+#loginContainer .login-box {
+  max-width: 420px;
+  width: 100%;
+  background: #FFFDF9;
+  border-radius: 24px;
+  padding: 40px 32px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+#loginContainer h1 {
+  font-size: 24px;
+  color: #008080;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+#loginContainer .subtitle {
+  font-size: 14px;
+  color: #7B8D8E;
+  margin-bottom: 24px;
+  font-weight: 400;
+  border-left: 3px solid #008080;
+  padding-left: 12px;
+}
+
+#loginContainer .form-group {
+  margin-bottom: 16px;
+}
+
+#loginContainer .form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #37474F;
+  margin-bottom: 6px;
+}
+
+#loginContainer .form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #E0F2F1;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;
+  outline: none;
+  background: #FFFFFF;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+#loginContainer .form-group input:focus {
+  border-color: #008080;
+  box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.08);
+}
+
+#loginContainer .btn {
+  width: 100%;
+  padding: 14px;
+  background: #008080;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+#loginContainer .btn:hover {
+  background: #006666;
+}
+
+#loginContainer .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#loginContainer .message {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: none;
+  font-weight: 500;
+}
+
+#loginContainer .message.error {
+  display: block;
+  background: #FFEBEE;
+  color: #C62828;
+  border-left: 4px solid #C62828;
+}
+
+#loginContainer .message.success {
+  display: block;
+  background: #E0F2F1;
+  color: #006666;
+  border-left: 4px solid #008080;
+}
+
+#loginContainer .loading-text {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  color: #008080;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+#loginContainer .loading-text.show {
+  display: flex;
+}
+
+#loginContainer .spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #E0F2F1;
+  border-top: 3px solid #008080;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 10px;
+}
+
+/* ===== АДАПТАЦИЯ ===== */
 @media (max-width: 480px) {
   .install-banner {
     padding: 8px 12px;
@@ -176,9 +305,11 @@ html, body {
   .install-banner .btn-close {
     font-size: 18px;
   }
+  #loginContainer .login-box {
+    padding: 32px 24px;
+  }
 }
 
-/* Очень маленькие телефоны (до 360px) */
 @media (max-width: 360px) {
   .install-banner {
     padding: 6px 10px;
@@ -198,7 +329,6 @@ html, body {
   }
 }
 
-/* Ориентация ландшафт на телефонах */
 @media (max-height: 500px) and (orientation: landscape) {
   .install-banner {
     padding: 4px 12px;
