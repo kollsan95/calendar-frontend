@@ -28,13 +28,16 @@
 </head>
 <body>
 
-  <!-- Лоадер -->
-  <div id="loader" class="loader">
+  <!-- Лоадер приложения -->
+  <div id="appLoader" class="app-loader">
     <div class="spinner"></div>
     <p>📅 Загрузка приложения...</p>
   </div>
 
-  <!-- Форма входа (показывается если нет токена) -->
+  <!-- Контейнер для приложения -->
+  <div id="app-container"></div>
+
+  <!-- Форма входа -->
   <div id="loginContainer">
     <div class="login-box">
       <h1>Добро пожаловать</h1>
@@ -60,9 +63,6 @@
     </div>
   </div>
 
-  <!-- IFRAME с GAS-приложением -->
-  <iframe id="app-frame" src="{{GAS_URL}}" allow="geolocation; microphone; camera; midi; encrypted-media" loading="lazy"></iframe>
-
   <!-- Баннер установки PWA -->
   <div id="installBanner" class="install-banner">
     <span class="message">📱 Установите приложение на домашний экран</span>
@@ -79,7 +79,7 @@
     var GAS_URL = '{{GAS_URL}}';
 
     // ============================================
-    //  ФУНКЦИИ ДЛЯ РАБОТЫ С ФОРМОЙ ВХОДА
+    //  ФУНКЦИИ
     // ============================================
     function showLoginMessage(text, type) {
       var el = document.getElementById('loginMessage');
@@ -94,13 +94,26 @@
       el.className = 'message';
     }
 
-    function showLoginForm() {
-      document.getElementById('loginContainer').classList.add('show');
-      document.getElementById('loader').style.display = 'none';
+    function showLoader() {
+      document.getElementById('appLoader').classList.add('show');
     }
 
-    function hideLoginForm() {
-      document.getElementById('loginContainer').classList.remove('show');
+    function hideLoader() {
+      document.getElementById('appLoader').classList.remove('show');
+    }
+
+    function showApp(html) {
+      var container = document.getElementById('app-container');
+      container.innerHTML = html;
+      container.classList.add('show');
+      document.getElementById('loginContainer').classList.add('hidden');
+      hideLoader();
+    }
+
+    function showLoginForm() {
+      document.getElementById('loginContainer').classList.remove('hidden');
+      document.getElementById('app-container').classList.remove('show');
+      hideLoader();
     }
 
     // ============================================
@@ -116,15 +129,18 @@
       }
       
       console.log('🔑 Токен есть, загружаем приложение...');
-      
-      // Отправляем токен через fetch с Authorization header
+      showLoader();
+
+      // Отправляем токен в теле запроса
       fetch(GAS_URL, {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'app' })
+        body: JSON.stringify({
+          action: 'app',
+          token: token
+        })
       })
       .then(function(response) { return response.text(); })
       .then(function(html) {
@@ -144,16 +160,8 @@
           // Это HTML, а не JSON — всё хорошо
         }
         
-        // Скрываем форму входа и лоадер
-        hideLoginForm();
-        document.getElementById('loader').classList.add('hidden');
-        setTimeout(function() {
-          document.getElementById('loader').style.display = 'none';
-        }, 500);
-        
-        // Загружаем App.html в iframe
-        var iframe = document.getElementById('app-frame');
-        iframe.srcdoc = html;
+        // Показываем приложение
+        showApp(html);
       })
       .catch(function(error) {
         console.error('❌ Ошибка загрузки приложения:', error);
@@ -216,18 +224,9 @@
         localStorage.setItem('authToken', username);
         localStorage.setItem('userRole', 'user');
         localStorage.setItem('username', username);
-        localStorage.setItem('scripts_loaded', 'true');
 
-        // Скрываем форму входа и лоадер
-        hideLoginForm();
-        document.getElementById('loader').classList.add('hidden');
-        setTimeout(function() {
-          document.getElementById('loader').style.display = 'none';
-        }, 500);
-
-        // Загружаем App.html в iframe
-        var iframe = document.getElementById('app-frame');
-        iframe.srcdoc = text;
+        // Показываем приложение
+        showApp(text);
       })
       .catch(function(error) {
         loadingEl.classList.remove('show');
@@ -280,37 +279,6 @@
     window.addEventListener('appinstalled', function() {
       document.getElementById('installBanner').classList.remove('show');
       console.log('✅ Приложение установлено');
-    });
-
-    // ============================================
-    //  ОФЛАЙН-СООБЩЕНИЕ В IFRAME
-    // ============================================
-    var iframe = document.getElementById('app-frame');
-
-    window.addEventListener('online', function() {
-      console.log('🟢 Сеть восстановлена');
-      iframe.contentWindow?.postMessage({ type: 'online' }, '*');
-    });
-
-    window.addEventListener('offline', function() {
-      console.log('🔴 Сеть отсутствует');
-      iframe.contentWindow?.postMessage({ type: 'offline' }, '*');
-    });
-
-    // ============================================
-    //  ОБРАБОТКА УВЕДОМЛЕНИЙ ИЗ GAS
-    // ============================================
-    window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'notification') {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'showNotification',
-            title: 'Календарь мастера',
-            body: event.data.message,
-            timestamp: event.data.timestamp || Date.now()
-          });
-        }
-      }
     });
   </script>
 
