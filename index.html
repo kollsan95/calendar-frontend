@@ -126,11 +126,8 @@
             messageEl.className = 'message';
         }
 
-        // ============================================================
-        // === ЕДИНСТВЕННОЕ ИЗМЕНЕНИЕ: ФУНКЦИЯ ЗАГРУЗКИ ПРИЛОЖЕНИЯ ===
-        // ============================================================
         function loadApp(html) {
-            // Проверяем, не вернулась ли ошибка
+            // Проверяем на ошибку
             try {
                 var data = JSON.parse(html);
                 if (data.status === 'error') {
@@ -139,22 +136,10 @@
                 }
             } catch(e) {}
 
-            var appContent = document.getElementById('appContent');
-            appContent.innerHTML = html;
-            
-            // Перезапускаем скрипты
-            var scripts = appContent.querySelectorAll('script');
-            scripts.forEach(function(script) {
-                var newScript = document.createElement('script');
-                for (var i = 0; i < script.attributes.length; i++) {
-                    var attr = script.attributes[i];
-                    newScript.setAttribute(attr.name, attr.value);
-                }
-                newScript.textContent = script.textContent;
-                script.parentNode.replaceChild(newScript, script);
-            });
-            
-            document.getElementById('authBlock').style.display = 'none';
+            // document.open с параметрами для корректной работы на ПК
+            document.open('text/html', 'replace');
+            document.write(html);
+            document.close();
         }
 
         // === АВТОРИЗАЦИЯ ===
