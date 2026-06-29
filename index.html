@@ -21,189 +21,6 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
-
-    <style>
-        /* ===== БАЗОВЫЕ СТИЛИ ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Montserrat', 'Inter', sans-serif;
-            background: #FFFDF9;
-            color: #37474F;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        #app {
-            max-width: 480px;
-            width: 100%;
-            background: #FFFDF9;
-            border-radius: 24px;
-            padding: 40px 32px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-        }
-        h1 {
-            font-size: 24px;
-            color: #008080;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .subtitle {
-            font-size: 14px;
-            color: #7B8D8E;
-            margin-bottom: 24px;
-            font-weight: 400;
-            border-left: 3px solid #008080;
-            padding-left: 12px;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: #37474F;
-            margin-bottom: 6px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid #E0F2F1;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: 'Montserrat', sans-serif;
-            outline: none;
-            background: #FFFFFF;
-            transition: border 0.2s, box-shadow 0.2s;
-        }
-        .form-group input:focus {
-            border-color: #008080;
-            box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.08);
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: #008080;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: 'Montserrat', sans-serif;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .btn:hover {
-            background: #006666;
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .message {
-            margin-top: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            display: none;
-            font-weight: 500;
-        }
-        .message.error {
-            display: block;
-            background: #FFEBEE;
-            color: #C62828;
-            border-left: 4px solid #C62828;
-        }
-        .message.success {
-            display: block;
-            background: #E0F2F1;
-            color: #006666;
-            border-left: 4px solid #008080;
-        }
-        .loading-text {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            margin-top: 12px;
-            color: #008080;
-            font-weight: 500;
-            font-size: 15px;
-        }
-        .loading-text.show {
-            display: flex;
-        }
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #E0F2F1;
-            border-top: 3px solid #008080;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* ===== БАННЕР УСТАНОВКИ ===== */
-        #installBanner {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #008080;
-            color: #FFF;
-            padding: 12px 20px;
-            text-align: center;
-            z-index: 9999;
-            font-family: 'Montserrat', sans-serif;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-            justify-content: space-between;
-            align-items: center;
-        }
-        #installBanner.show {
-            display: flex;
-        }
-        #installBanner .message {
-            font-size: 14px;
-            font-weight: 500;
-            margin: 0;
-            padding: 0;
-            display: inline;
-            background: none;
-            color: #FFF;
-            border: none;
-        }
-        #installBanner .btn-install {
-            background: #FFF;
-            color: #008080;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: 12px;
-        }
-        #installBanner .btn-close {
-            background: none;
-            border: none;
-            color: #FFF;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0 8px;
-        }
-    </style>
 </head>
 <body>
 
@@ -232,6 +49,12 @@
             <div id="message" class="message"></div>
         </div>
 
+        <!-- Лоадер приложения -->
+        <div class="app-loader" id="appLoader">
+            <div class="spinner"></div>
+            <p>Загрузка приложения...</p>
+        </div>
+
         <!-- Контейнер для приложения -->
         <div id="appContent"></div>
     </div>
@@ -250,11 +73,39 @@
         // {{GAS_URL}} заменяется GitHub Actions
         var GAS_URL = '{{GAS_URL}}';
 
+        // === ФУНКЦИЯ ХЕШИРОВАНИЯ ПАРОЛЯ ===
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + 'salt_calendar_2024'); // Добавляем соль
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
         // === РЕГИСТРАЦИЯ SERVICE WORKER ===
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/calendar-frontend/sw.js')
-                .then(function() {
+                .then(function(registration) {
                     console.log('✅ Service Worker зарегистрирован');
+                    
+                    // Отправляем GAS_URL в SW сразу после активации
+                    if (registration.active) {
+                        registration.active.postMessage({
+                            type: 'SET_GAS_URL',
+                            url: GAS_URL
+                        });
+                    } else {
+                        // Если SW ещё не активирован, ждём
+                        navigator.serviceWorker.ready.then(function(reg) {
+                            if (reg.active) {
+                                reg.active.postMessage({
+                                    type: 'SET_GAS_URL',
+                                    url: GAS_URL
+                                });
+                            }
+                        });
+                    }
                 })
                 .catch(function(err) {
                     console.warn('⚠️ Service Worker не зарегистрирован:', err);
@@ -306,11 +157,62 @@
             messageEl.className = 'message';
         }
 
+        // === ЗАГРУЗКА ПРИЛОЖЕНИЯ ===
+        function loadApp(html) {
+            var authBlock = document.getElementById('authBlock');
+            var appLoader = document.getElementById('appLoader');
+            var appContent = document.getElementById('appContent');
+
+            // Скрываем форму входа
+            authBlock.style.display = 'none';
+            
+            // Показываем лоадер
+            appLoader.classList.add('show');
+
+            // Загружаем HTML приложения
+            setTimeout(function() {
+                appContent.innerHTML = html;
+                appLoader.classList.remove('show');
+
+                // Перезапускаем скрипты в загруженном HTML
+                var scripts = appContent.querySelectorAll('script');
+                scripts.forEach(function(script) {
+                    var newScript = document.createElement('script');
+                    // Копируем все атрибуты
+                    for (var i = 0; i < script.attributes.length; i++) {
+                        var attr = script.attributes[i];
+                        newScript.setAttribute(attr.name, attr.value);
+                    }
+                    newScript.textContent = script.textContent;
+                    script.parentNode.replaceChild(newScript, script);
+                });
+
+                // Обновляем GAS_URL в приложении
+                if (typeof window.setGASUrl === 'function') {
+                    window.setGASUrl(GAS_URL);
+                }
+            }, 500);
+        }
+
+        // === ГЛОБАЛЬНАЯ ОБРАБОТКА ОШИБОК ===
+        window.addEventListener('error', function(e) {
+            console.error('❌ Глобальная ошибка:', e.message);
+            if (document.getElementById('appContent').innerHTML) {
+                // Показываем тост, если приложение уже загружено
+                if (typeof showToast === 'function') {
+                    showToast('Ошибка: ' + e.message, 'error');
+                }
+            }
+        });
+
         // === АВТОРИЗАЦИЯ ===
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             hideMessage();
+            
             var loadingEl = document.getElementById('loginLoading');
+            var loginBtn = document.getElementById('loginBtn');
+            
             loadingEl.classList.remove('show');
 
             var username = document.getElementById('username').value.trim();
@@ -321,52 +223,108 @@
                 return;
             }
 
+            // Блокируем кнопку
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Вход...';
             loadingEl.classList.add('show');
 
-            // === ЗАПРОС К GAS ===
-            var url = GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
+            try {
+                // Хешируем пароль
+                var hashedPassword = await hashPassword(password);
+                
+                // Отправляем запрос к GAS
+                var url = GAS_URL + 
+                    '?action=login' + 
+                    '&username=' + encodeURIComponent(username) + 
+                    '&password=' + encodeURIComponent(hashedPassword) +
+                    '&t=' + Date.now();
 
-            fetch(url)
-                .then(function(response) {
-                    return response.text();
-                })
-                .then(function(text) {
-                    loadingEl.classList.remove('show');
+                var response = await fetch(url);
+                var text = await response.text();
 
-                    // Проверяем, не вернулся ли JSON с ошибкой
-                    try {
-                        var data = JSON.parse(text);
-                        if (data.status === 'error') {
-                            showMessage(data.message || 'Ошибка входа', 'error');
-                            return;
-                        }
-                    } catch(e) {}
+                loadingEl.classList.remove('show');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Войти';
 
-                    // Если всё ок — заменяем страницу на полученный HTML
-                    document.open();
-                    document.write(text);
-                    document.close();
-                })
-                .catch(function(error) {
-                    loadingEl.classList.remove('show');
-                    console.error('❌ Ошибка:', error);
-                    showMessage('Ошибка соединения: ' + error.message, 'error');
-                });
+                // Проверяем, не вернулся ли JSON с ошибкой
+                try {
+                    var data = JSON.parse(text);
+                    if (data.status === 'error') {
+                        showMessage(data.message || 'Ошибка входа', 'error');
+                        return;
+                    }
+                } catch(e) {
+                    // Это не JSON - значит это HTML приложения
+                }
+
+                // Сохраняем токен
+                localStorage.setItem('authToken', username);
+                localStorage.setItem('userRole', 'user');
+                localStorage.setItem('username', username);
+                localStorage.setItem('scripts_loaded', 'true');
+
+                // Загружаем приложение
+                loadApp(text);
+
+            } catch (error) {
+                loadingEl.classList.remove('show');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Войти';
+                console.error('❌ Ошибка:', error);
+                showMessage('Ошибка соединения: ' + error.message, 'error');
+            }
         });
 
         // === ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ ===
-        var token = localStorage.getItem('authToken');
-        var scriptsLoaded = localStorage.getItem('scripts_loaded');
+        (function checkAuth() {
+            var token = localStorage.getItem('authToken');
+            var scriptsLoaded = localStorage.getItem('scripts_loaded');
 
-        if (token && scriptsLoaded === 'true') {
-            console.log('🔑 Токен найден, загружаем приложение');
-            // Загружаем App.html
-            window.location.href = GAS_URL + '?action=app&token=' + encodeURIComponent(token);
-        } else {
-            console.log('🔐 Нет токена, показываем форму входа');
-        }
+            if (token && scriptsLoaded === 'true') {
+                console.log('🔑 Токен найден, загружаем приложение');
+                
+                // Показываем лоадер
+                document.getElementById('authBlock').style.display = 'none';
+                document.getElementById('appLoader').classList.add('show');
+
+                // Загружаем приложение
+                var url = GAS_URL + '?action=app&token=' + encodeURIComponent(token) + '&t=' + Date.now();
+                
+                fetch(url)
+                    .then(function(response) { return response.text(); })
+                    .then(function(html) {
+                        document.getElementById('appLoader').classList.remove('show');
+                        
+                        // Проверяем на ошибку
+                        try {
+                            var data = JSON.parse(html);
+                            if (data.status === 'error') {
+                                // Токен невалиден - показываем форму входа
+                                localStorage.removeItem('authToken');
+                                localStorage.removeItem('userRole');
+                                localStorage.removeItem('username');
+                                localStorage.removeItem('scripts_loaded');
+                                document.getElementById('authBlock').style.display = 'block';
+                                showMessage('Сессия истекла. Войдите заново.', 'error');
+                                return;
+                            }
+                        } catch(e) {}
+                        
+                        loadApp(html);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Ошибка загрузки приложения:', error);
+                        document.getElementById('appLoader').classList.remove('show');
+                        document.getElementById('authBlock').style.display = 'block';
+                        showMessage('Ошибка загрузки приложения. Попробуйте войти заново.', 'error');
+                    });
+            } else {
+                console.log('🔐 Нет токена, показываем форму входа');
+            }
+        })();
 
         console.log('✅ Страница загружена');
+        console.log('🔑 GAS_URL:', GAS_URL);
     </script>
 
 </body>
