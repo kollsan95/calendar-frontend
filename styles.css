@@ -65,7 +65,7 @@ html, body {
   100% { transform: rotate(360deg); }
 }
 
-/* ===== БАННЕР УСТАНОВКИ (АДАПТИВНЫЙ) ===== */
+/* ===== БАННЕР УСТАНОВКИ ===== */
 .install-banner {
   position: fixed;
   bottom: 0;
@@ -73,7 +73,7 @@ html, body {
   right: 0;
   background: #008080;
   color: #FFF;
-  padding: 10px 16px;
+  padding: 12px 20px;
   display: none;
   justify-content: space-between;
   align-items: center;
@@ -89,7 +89,7 @@ html, body {
 }
 
 .install-banner .message {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   flex: 1;
   min-width: 120px;
@@ -106,9 +106,9 @@ html, body {
   background: #FFF;
   color: #008080;
   border: none;
-  padding: 6px 16px;
+  padding: 8px 20px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -129,7 +129,7 @@ html, body {
   color: #FFF;
   font-size: 20px;
   cursor: pointer;
-  padding: 0 6px;
+  padding: 0 8px;
   line-height: 1;
   transition: transform 0.2s;
 }
