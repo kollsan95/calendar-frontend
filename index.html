@@ -23,7 +23,6 @@
   <link rel="apple-touch-icon" sizes="192x192" href="/calendar-frontend/icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="512x512" href="/calendar-frontend/icons/icon-512.png" />
 
-  <!-- Стили -->
   <link rel="stylesheet" href="/calendar-frontend/styles.css" />
 </head>
 <body>
@@ -117,7 +116,7 @@
     }
 
     // ============================================
-    //  ПРОВЕРКА ТОКЕНА И ЗАГРУЗКА ПРИЛОЖЕНИЯ
+    //  ПРОВЕРКА ТОКЕНА И ЗАГРУЗКА ПРИЛОЖЕНИЯ (GET)
     // ============================================
     (function checkAuth() {
       var token = localStorage.getItem('authToken');
@@ -131,24 +130,14 @@
       console.log('🔑 Токен есть, загружаем приложение...');
       showLoader();
 
-      // Отправляем токен в теле запроса
-      fetch(GAS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'app',
-          token: token
-        })
-      })
+      // GET запрос с параметрами в URL (единственный рабочий способ для GAS)
+      fetch(GAS_URL + '?action=app&token=' + encodeURIComponent(token))
       .then(function(response) { return response.text(); })
       .then(function(html) {
         // Проверяем, не вернулась ли ошибка
         try {
           var data = JSON.parse(html);
           if (data.status === 'error') {
-            // Токен невалиден
             localStorage.removeItem('authToken');
             localStorage.removeItem('userRole');
             localStorage.removeItem('username');
@@ -156,22 +145,19 @@
             showLoginMessage(data.message || 'Сессия истекла. Войдите заново.', 'error');
             return;
           }
-        } catch(e) {
-          // Это HTML, а не JSON — всё хорошо
-        }
+        } catch(e) {}
         
-        // Показываем приложение
         showApp(html);
       })
       .catch(function(error) {
-        console.error('❌ Ошибка загрузки приложения:', error);
+        console.error('❌ Ошибка:', error);
         showLoginForm();
-        showLoginMessage('Ошибка загрузки приложения. Попробуйте обновить страницу.', 'error');
+        showLoginMessage('Ошибка загрузки приложения. Проверьте интернет.', 'error');
       });
     })();
 
     // ============================================
-    //  ОБРАБОТКА ВХОДА
+    //  ОБРАБОТКА ВХОДА (GET)
     // ============================================
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -194,18 +180,8 @@
       loginBtn.textContent = 'Вход...';
       loadingEl.classList.add('show');
 
-      // Отправляем запрос на логин
-      fetch(GAS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'login',
-          username: username,
-          password: password
-        })
-      })
+      // GET запрос с параметрами
+      fetch(GAS_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password))
       .then(function(response) { return response.text(); })
       .then(function(text) {
         loadingEl.classList.remove('show');
@@ -220,12 +196,10 @@
           }
         } catch(e) {}
 
-        // Сохраняем токен
         localStorage.setItem('authToken', username);
         localStorage.setItem('userRole', 'user');
         localStorage.setItem('username', username);
 
-        // Показываем приложение
         showApp(text);
       })
       .catch(function(error) {
@@ -238,7 +212,7 @@
     });
 
     // ============================================
-    //  РЕГИСТРАЦИЯ SERVICE WORKER
+    //  REGISTER SERVICE WORKER
     // ============================================
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/calendar-frontend/sw.js')
@@ -251,7 +225,7 @@
     }
 
     // ============================================
-    //  PWA: БАННЕР УСТАНОВКИ
+    //  PWA INSTALL BANNER
     // ============================================
     var deferredPrompt;
 
