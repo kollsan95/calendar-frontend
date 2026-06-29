@@ -4,18 +4,18 @@
 
 const CACHE_NAME = 'calendar-pwa-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/favicon.ico',
-    '/icons/icon-72.png',
-    '/icons/icon-96.png',
-    '/icons/icon-128.png',
-    '/icons/icon-144.png',
-    '/icons/icon-152.png',
-    '/icons/icon-192.png',
-    '/icons/icon-384.png',
-    '/icons/icon-512.png'
+    '/calendar-frontend/',
+    '/calendar-frontend/index.html',
+    '/calendar-frontend/manifest.json',
+    '/calendar-frontend/favicon.ico',
+    '/calendar-frontend/icons/icon-72.png',
+    '/calendar-frontend/icons/icon-96.png',
+    '/calendar-frontend/icons/icon-128.png',
+    '/calendar-frontend/icons/icon-144.png',
+    '/calendar-frontend/icons/icon-152.png',
+    '/calendar-frontend/icons/icon-192.png',
+    '/calendar-frontend/icons/icon-384.png',
+    '/calendar-frontend/icons/icon-512.png'
 ];
 
 // === УСТАНОВКА ===
@@ -29,6 +29,9 @@ self.addEventListener('install', function(event) {
             .then(function() {
                 console.log('✅ Статика закеширована');
                 return self.skipWaiting();
+            })
+            .catch(function(error) {
+                console.warn('⚠️ Ошибка кеширования:', error);
             })
     );
 });
@@ -57,7 +60,7 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
     var request = event.request;
 
-    // Пропускаем запросы к GAS (динамические)
+    // Пропускаем запросы к GAS (они динамические)
     if (request.url.includes('script.google.com')) {
         event.respondWith(fetch(request));
         return;
@@ -79,6 +82,7 @@ self.addEventListener('fetch', function(event) {
                 return caches.match(request)
                     .then(function(cachedResponse) {
                         if (cachedResponse) {
+                            console.log('📦 Офлайн: отдаём из кеша:', request.url);
                             return cachedResponse;
                         }
                         if (request.mode === 'navigate') {
