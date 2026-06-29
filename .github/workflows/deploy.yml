@@ -27,15 +27,11 @@ jobs:
 
           echo "🔑 GAS_URL: $GAS_URL"
 
-          # Заменяем {{GAS_URL}} только в index.html
+          # Заменяем во всех файлах
           sed -i "s|{{GAS_URL}}|$GAS_URL|g" index.html
-          
-          # В sw.js заменяем только если есть (запасной вариант)
-          if [ -f "sw.js" ]; then
-            sed -i "s|{{GAS_URL}}|$GAS_URL|g" sw.js || true
-          fi
+          sed -i "s|{{GAS_URL}}|$GAS_URL|g" sw.js
 
-          echo "✅ GAS_URL injected into index.html"
+          echo "✅ GAS_URL injected"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
