@@ -23,108 +23,8 @@
   <link rel="apple-touch-icon" sizes="192x192" href="/calendar-frontend/icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="512x512" href="/calendar-frontend/icons/icon-512.png" />
 
-  <style>
-    /* ===== СТИЛИ ДЛЯ ОБЁРТКИ ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background: #FFFDF9;
-    }
-    #app-frame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
-
-    /* ===== ЛОАДЕР ===== */
-    .loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #FFFDF9;
-      z-index: 1000;
-      font-family: 'Montserrat', 'Inter', sans-serif;
-      color: #008080;
-      transition: opacity 0.5s ease;
-    }
-    .loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .loader .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #E0F2F1;
-      border-top: 4px solid #008080;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    .loader p {
-      margin-top: 20px;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* ===== БАННЕР УСТАНОВКИ ===== */
-    .install-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #008080;
-      color: #FFF;
-      padding: 12px 20px;
-      display: none;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 2000;
-      font-family: 'Montserrat', sans-serif;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-    }
-    .install-banner.show {
-      display: flex;
-    }
-    .install-banner .message {
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .install-banner .btn-install {
-      background: #FFF;
-      color: #008080;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-left: 12px;
-    }
-    .install-banner .btn-close {
-      background: none;
-      border: none;
-      color: #FFF;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 8px;
-    }
-  </style>
+  <!-- Стили -->
+  <link rel="stylesheet" href="/calendar-frontend/styles.css" />
 </head>
 <body>
 
@@ -139,8 +39,8 @@
 
   <!-- Баннер установки PWA -->
   <div id="installBanner" class="install-banner">
-    <span class="message">📱 Установите приложение на домашний экран</span>
-    <div>
+    <span class="message">📱 Установите приложение</span>
+    <div class="actions">
       <button class="btn-install" id="installBtn">Установить</button>
       <button class="btn-close" id="closeBanner">✕</button>
     </div>
@@ -150,7 +50,6 @@
     // ============================================
     //  КОНФИГУРАЦИЯ
     // ============================================
-    // {{GAS_URL}} заменяется GitHub Actions
     var GAS_URL = '{{GAS_URL}}';
 
     // === Устанавливаем src IFRAME ===
@@ -179,6 +78,14 @@
         }, 500);
       }, 300);
     });
+
+    // Если iframe уже загружен (кэш)
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      loader.classList.add('hidden');
+      setTimeout(function() {
+        loader.style.display = 'none';
+      }, 500);
+    }
 
     // === Обработка ошибок загрузки ===
     iframe.addEventListener('error', function() {
@@ -225,7 +132,7 @@
       console.log('✅ Приложение установлено');
     });
 
-    // === Офлайн-баннер (сообщение в IFRAME) ===
+    // === Офлайн-сообщение в IFRAME ===
     window.addEventListener('online', function() {
       console.log('🟢 Сеть восстановлена');
       iframe.contentWindow?.postMessage({ type: 'online' }, '*');
@@ -238,9 +145,7 @@
 
     // === Обработка уведомлений из GAS ===
     window.addEventListener('message', function(event) {
-      // Проверяем, что сообщение от нашего GAS-приложения
       if (event.data && event.data.type === 'notification') {
-        // Показываем системное уведомление через Service Worker
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({
             type: 'showNotification',

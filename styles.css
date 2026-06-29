@@ -1,5 +1,5 @@
 /* ============================================
-   Стили для обёртки (IFRAME, лоадер, баннер)
+   СТИЛИ ДЛЯ ОБЁРТКИ (index.html)
    ============================================ */
 
 * {
@@ -8,13 +8,11 @@
   box-sizing: border-box;
 }
 
-html,
-body {
+html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
   background: #FFFDF9;
-  font-family: 'Montserrat', 'Inter', sans-serif;
 }
 
 #app-frame {
@@ -24,7 +22,7 @@ body {
   display: block;
 }
 
-/* ===== Лоадер ===== */
+/* ===== ЛОАДЕР ===== */
 .loader {
   position: fixed;
   top: 0;
@@ -67,7 +65,7 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-/* ===== Баннер установки ===== */
+/* ===== БАННЕР УСТАНОВКИ (АДАПТИВНЫЙ) ===== */
 .install-banner {
   position: fixed;
   bottom: 0;
@@ -75,161 +73,142 @@ body {
   right: 0;
   background: #008080;
   color: #FFF;
-  padding: 12px 20px;
+  padding: 10px 16px;
   display: none;
   justify-content: space-between;
   align-items: center;
   z-index: 2000;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', 'Inter', sans-serif;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .install-banner.show {
   display: flex;
 }
 
-.install-banner button {
+.install-banner .message {
+  font-size: 13px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 120px;
+}
+
+.install-banner .actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.install-banner .btn-install {
   background: #FFF;
   color: #008080;
   border: none;
-  padding: 8px 20px;
+  padding: 6px 16px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s;
 }
 
-.install-banner .close {
+.install-banner .btn-install:hover {
+  transform: scale(1.05);
+}
+
+.install-banner .btn-install:active {
+  transform: scale(0.95);
+}
+
+.install-banner .btn-close {
   background: none;
+  border: none;
   color: #FFF;
   font-size: 20px;
-  padding: 0 8px;
-}
-
-/* ===== Стили для index.html ===== */
-#app {
-  max-width: 480px;
-  width: 100%;
-  background: #FFFDF9;
-  border-radius: 24px;
-  padding: 40px 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  margin: 0 auto;
-}
-
-#app h1 {
-  font-size: 24px;
-  color: #008080;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-#app .subtitle {
-  font-size: 14px;
-  color: #7B8D8E;
-  margin-bottom: 24px;
-  font-weight: 400;
-  border-left: 3px solid #008080;
-  padding-left: 12px;
-}
-
-#app .form-group {
-  margin-bottom: 16px;
-}
-
-#app .form-group label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #37474F;
-  margin-bottom: 6px;
-}
-
-#app .form-group input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid #E0F2F1;
-  border-radius: 12px;
-  font-size: 16px;
-  font-family: 'Montserrat', sans-serif;
-  outline: none;
-  background: #FFFFFF;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-
-#app .form-group input:focus {
-  border-color: #008080;
-  box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.08);
-}
-
-#app .btn {
-  width: 100%;
-  padding: 14px;
-  background: #008080;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  padding: 0 6px;
+  line-height: 1;
+  transition: transform 0.2s;
 }
 
-#app .btn:hover {
-  background: #006666;
+.install-banner .btn-close:hover {
+  transform: scale(1.2);
 }
 
-#app .btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+.install-banner .btn-close:active {
+  transform: scale(0.9);
 }
 
-#app .message {
-  margin-top: 12px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  display: none;
-  font-weight: 500;
+/* ===== АДАПТАЦИЯ ДЛЯ РАЗНЫХ ЭКРАНОВ ===== */
+
+/* Планшеты и маленькие ноутбуки */
+@media (max-width: 768px) {
+  .install-banner {
+    padding: 10px 14px;
+  }
+  .install-banner .message {
+    font-size: 13px;
+    min-width: 100px;
+  }
+  .install-banner .btn-install {
+    font-size: 13px;
+    padding: 6px 14px;
+  }
 }
 
-#app .message.error {
-  display: block;
-  background: #FFEBEE;
-  color: #C62828;
-  border-left: 4px solid #C62828;
+/* Телефоны */
+@media (max-width: 480px) {
+  .install-banner {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .install-banner .message {
+    font-size: 12px;
+    min-width: 80px;
+  }
+  .install-banner .btn-install {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+  .install-banner .btn-close {
+    font-size: 18px;
+  }
 }
 
-#app .message.success {
-  display: block;
-  background: #E0F2F1;
-  color: #006666;
-  border-left: 4px solid #008080;
+/* Очень маленькие телефоны (до 360px) */
+@media (max-width: 360px) {
+  .install-banner {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  .install-banner .message {
+    font-size: 11px;
+    min-width: 60px;
+  }
+  .install-banner .btn-install {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .install-banner .btn-close {
+    font-size: 16px;
+    padding: 0 4px;
+  }
 }
 
-#app .loading-text {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  margin-top: 12px;
-  color: #008080;
-  font-weight: 500;
-  font-size: 15px;
-}
-
-#app .loading-text.show {
-  display: flex;
-}
-
-#app .spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #E0F2F1;
-  border-top: 3px solid #008080;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-right: 10px;
+/* Ориентация ландшафт на телефонах */
+@media (max-height: 500px) and (orientation: landscape) {
+  .install-banner {
+    padding: 4px 12px;
+  }
+  .install-banner .message {
+    font-size: 11px;
+    min-width: 60px;
+  }
+  .install-banner .btn-install {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
 }
