@@ -2,7 +2,7 @@
   "name": "Календарь мастера",
   "short_name": "Календарь",
   "description": "Приложение для записи на услуги (кератин, ботокс, холодное, полировка)",
-  "start_url": "/calendar-frontend/",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FFFDF9",
